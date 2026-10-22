@@ -17,7 +17,7 @@ export default function HeroNav() {
     <>
       <nav className="hero__nav">
         <Link href="/" aria-label="Pádel Life — Inicio" className="hero__nav-logo">
-          <Image src="/brand/logo.png" alt="Pádel Life" width={160} height={70} priority />
+          <Image src="/brand/logo-dark.png" alt="Pádel Life" width={160} height={70} priority />
         </Link>
 
         <div className="hero__nav-links">
