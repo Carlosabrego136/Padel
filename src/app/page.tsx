@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import HeroMotion from '@/components/HeroMotion';
 import HeroNav from '@/components/HeroNav';
+import SiteFooter from '@/components/SiteFooter';
 
 export default function HomePage() {
   return (
+    <>
     <main>
       {/* Hero — spec Targo: navbar embebida, titular en escalera, video a la derecha */}
       <section className="hero">
@@ -73,14 +75,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ borderTop: '1px solid var(--color-border)', padding: '24px 0', textAlign: 'center' }}>
-        <div className="container">
-          <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem' }}>
-            © {new Date().getFullYear()} Pádel Life · Tepic, Nayarit
-          </p>
-        </div>
-      </footer>
     </main>
+    <SiteFooter />
+    </>
   );
 }

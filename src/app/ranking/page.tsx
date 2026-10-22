@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getCategorias, getRankingCategoria, type CategoriaRow } from '@/lib/queries';
 import SiteHeader from '@/components/SiteHeader';
+import SiteFooter from '@/components/SiteFooter';
 import RankingClient from './RankingClient';
 
 export const metadata: Metadata = {
@@ -54,6 +55,7 @@ export default async function RankingPage() {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

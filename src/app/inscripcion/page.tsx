@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import SiteHeader from '@/components/SiteHeader';
+import SiteFooter from '@/components/SiteFooter';
 import InscripcionForm from './InscripcionForm';
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function InscripcionPage() {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

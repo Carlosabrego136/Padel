@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import SiteHeader from '@/components/SiteHeader';
+import SiteFooter from '@/components/SiteFooter';
 
 export default function NotFound() {
   return (
@@ -19,6 +20,7 @@ export default function NotFound() {
           </Link>
         </div>
       </main>
+      <SiteFooter />
     </>
   );
 }

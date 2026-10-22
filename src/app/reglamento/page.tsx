@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import SiteHeader from '@/components/SiteHeader';
+import SiteFooter from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'Reglamento',
@@ -144,6 +145,7 @@ export default function ReglamentoPage() {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPareja, getCategorias } from '@/lib/queries';
 import SiteHeader from '@/components/SiteHeader';
+import SiteFooter from '@/components/SiteFooter';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -198,6 +199,7 @@ export default async function ParejaPage({ params }: Props) {
           </div>
         </section>
       </main>
+      <SiteFooter />
     </>
   );
 }
