@@ -108,13 +108,17 @@ export default function InscripcionForm() {
 
   if (status === 'ok') {
     return (
-      <div className="card" style={{ textAlign: 'center', padding: 40 }}>
-        <p style={{ fontSize: '2rem', marginBottom: 12 }}>✓</p>
-        <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: 8 }}>Inscripción enviada</h2>
+      <div className="insc-success">
+        <span className="insc-success__ball">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>Inscripción enviada</h2>
         <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
           Tu solicitud ha sido recibida. El club la revisará y te notificará por teléfono.
         </p>
-        <Link href="/ranking" className="btn btn-primary">
+        <Link href="/ranking" className="btn-chamfer">
           Ver ranking
         </Link>
       </div>
@@ -130,86 +134,120 @@ export default function InscripcionForm() {
       )}
 
       {/* Categoría */}
-      <fieldset className="form-group">
-        <legend className="form-label">Categoría</legend>
-        <select name="categoria" className="form-input" required defaultValue="">
-          <option value="" disabled>Selecciona…</option>
-          {CATEGORIAS.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
-        {errors['categoria'] && <p className="form-error">{errors['categoria']}</p>}
-      </fieldset>
+      <div className="insc-section">
+        <span className="insc-section__num">1</span>
+        <div className="insc-section__body">
+          <fieldset className="form-group" style={{ margin: 0 }}>
+            <legend className="insc-section__title">Categoría</legend>
+            <select name="categoria" className="form-input" required defaultValue="">
+              <option value="" disabled>Selecciona…</option>
+              {CATEGORIAS.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+            {errors['categoria'] && <p className="form-error">{errors['categoria']}</p>}
+          </fieldset>
+        </div>
+      </div>
 
       {/* Jugador 1 */}
-      <fieldset className="form-group">
-        <legend className="form-label">Jugador 1</legend>
-        <input name="j1_nombre" className="form-input" placeholder="Nombre completo" maxLength={60} required />
-        {errors['jugador1.nombre'] && <p className="form-error">{errors['jugador1.nombre']}</p>}
-        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-          <label className="form-radio-label">
-            <input type="radio" name="j1_genero" value="M" defaultChecked /> Hombre
-          </label>
-          <label className="form-radio-label">
-            <input type="radio" name="j1_genero" value="F" /> Mujer
-          </label>
+      <div className="insc-section">
+        <span className="insc-section__num">2</span>
+        <div className="insc-section__body">
+          <fieldset className="form-group" style={{ margin: 0 }}>
+            <legend className="insc-section__title">Jugador 1</legend>
+            <input name="j1_nombre" className="form-input" placeholder="Nombre completo" maxLength={60} required />
+            {errors['jugador1.nombre'] && <p className="form-error">{errors['jugador1.nombre']}</p>}
+
+            <div className="insc-pill-group">
+              <label className="insc-pill">
+                <input type="radio" name="j1_genero" value="M" defaultChecked /> Hombre
+              </label>
+              <label className="insc-pill">
+                <input type="radio" name="j1_genero" value="F" /> Mujer
+              </label>
+            </div>
+            {errors['jugador1.genero'] && <p className="form-error">{errors['jugador1.genero']}</p>}
+
+            <input
+              name="j1_telefono"
+              className="form-input"
+              placeholder="Teléfono (opcional)"
+              maxLength={15}
+              style={{ marginTop: 10 }}
+            />
+            {errors['jugador1.telefono'] && <p className="form-error">{errors['jugador1.telefono']}</p>}
+          </fieldset>
         </div>
-        {errors['jugador1.genero'] && <p className="form-error">{errors['jugador1.genero']}</p>}
-        <input name="j1_telefono" className="form-input" placeholder="Teléfono (opcional)" maxLength={15} style={{ marginTop: 8 }} />
-        {errors['jugador1.telefono'] && <p className="form-error">{errors['jugador1.telefono']}</p>}
-      </fieldset>
+      </div>
 
       {/* Jugador 2 */}
-      <fieldset className="form-group">
-        <legend className="form-label">Jugador 2</legend>
-        <input name="j2_nombre" className="form-input" placeholder="Nombre completo" maxLength={60} required />
-        {errors['jugador2.nombre'] && <p className="form-error">{errors['jugador2.nombre']}</p>}
-        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-          <label className="form-radio-label">
-            <input type="radio" name="j2_genero" value="M" defaultChecked /> Hombre
-          </label>
-          <label className="form-radio-label">
-            <input type="radio" name="j2_genero" value="F" /> Mujer
-          </label>
+      <div className="insc-section">
+        <span className="insc-section__num">3</span>
+        <div className="insc-section__body">
+          <fieldset className="form-group" style={{ margin: 0 }}>
+            <legend className="insc-section__title">Jugador 2</legend>
+            <input name="j2_nombre" className="form-input" placeholder="Nombre completo" maxLength={60} required />
+            {errors['jugador2.nombre'] && <p className="form-error">{errors['jugador2.nombre']}</p>}
+
+            <div className="insc-pill-group">
+              <label className="insc-pill">
+                <input type="radio" name="j2_genero" value="M" defaultChecked /> Hombre
+              </label>
+              <label className="insc-pill">
+                <input type="radio" name="j2_genero" value="F" /> Mujer
+              </label>
+            </div>
+            {errors['jugador2.genero'] && <p className="form-error">{errors['jugador2.genero']}</p>}
+
+            <input
+              name="j2_telefono"
+              className="form-input"
+              placeholder="Teléfono (opcional)"
+              maxLength={15}
+              style={{ marginTop: 10 }}
+            />
+            {errors['jugador2.telefono'] && <p className="form-error">{errors['jugador2.telefono']}</p>}
+          </fieldset>
         </div>
-        {errors['jugador2.genero'] && <p className="form-error">{errors['jugador2.genero']}</p>}
-        <input name="j2_telefono" className="form-input" placeholder="Teléfono (opcional)" maxLength={15} style={{ marginTop: 8 }} />
-        {errors['jugador2.telefono'] && <p className="form-error">{errors['jugador2.telefono']}</p>}
-      </fieldset>
+      </div>
 
       {/* Contacto */}
-      <fieldset className="form-group">
-        <legend className="form-label">Teléfono de contacto</legend>
-        <input name="telefonoContacto" className="form-input" placeholder="10 dígitos" maxLength={15} required />
-        {errors['telefonoContacto'] && <p className="form-error">{errors['telefonoContacto']}</p>}
-        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
-          Este número será visible en la tabla de ranking.
-        </p>
-      </fieldset>
+      <div className="insc-section">
+        <span className="insc-section__num">4</span>
+        <div className="insc-section__body">
+          <fieldset className="form-group" style={{ margin: 0 }}>
+            <legend className="insc-section__title">Teléfono de contacto</legend>
+            <input name="telefonoContacto" className="form-input" placeholder="10 dígitos" maxLength={15} required />
+            {errors['telefonoContacto'] && <p className="form-error">{errors['telefonoContacto']}</p>}
+            <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
+              Este número será visible en la tabla de ranking.
+            </p>
+          </fieldset>
 
-      {/* Checkboxes */}
-      <div className="form-group">
-        <label className="form-checkbox-label">
-          <input type="checkbox" name="aceptaPublicar" required />
-          <span>Autorizo publicar el teléfono de contacto en la tabla de ranking</span>
-        </label>
-        {errors['aceptaPublicar'] && <p className="form-error">{errors['aceptaPublicar']}</p>}
-      </div>
-      <div className="form-group">
-        <label className="form-checkbox-label">
-          <input type="checkbox" name="aceptaReglamento" required />
-          <span>
-            Acepto el{' '}
-            <Link href="/reglamento" target="_blank" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>
-              reglamento
-            </Link>
-          </span>
-        </label>
-        {errors['aceptaReglamento'] && <p className="form-error">{errors['aceptaReglamento']}</p>}
+          <div className="insc-checks" style={{ marginTop: 16 }}>
+            <label className="insc-check">
+              <input type="checkbox" name="aceptaPublicar" required />
+              <span>Autorizo publicar el teléfono de contacto en la tabla de ranking</span>
+            </label>
+            {errors['aceptaPublicar'] && <p className="form-error">{errors['aceptaPublicar']}</p>}
+
+            <label className="insc-check">
+              <input type="checkbox" name="aceptaReglamento" required />
+              <span>
+                Acepto el{' '}
+                <Link href="/reglamento" target="_blank" style={{ color: 'var(--color-accent)', textDecoration: 'underline' }}>
+                  reglamento
+                </Link>
+              </span>
+            </label>
+            {errors['aceptaReglamento'] && <p className="form-error">{errors['aceptaReglamento']}</p>}
+          </div>
+        </div>
       </div>
 
       {/* Submit */}
-      <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: 8 }} disabled={status === 'sending'}>
+      <button type="submit" className="btn-chamfer insc-submit" disabled={status === 'sending'}>
         {status === 'sending' ? 'Enviando…' : 'Enviar inscripción'}
       </button>
     </form>
