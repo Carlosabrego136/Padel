@@ -11,7 +11,7 @@ export default function InscripcionPage() {
   return (
     <>
       <SiteHeader />
-      <main style={{ paddingTop: 72 }}>
+      <main style={{ paddingTop: 104 }}>
         <section className="section">
           <div className="container" style={{ maxWidth: 600 }}>
             <h1 className="section__title" style={{ textAlign: 'center', marginBottom: 8 }}>

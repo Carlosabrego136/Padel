@@ -21,7 +21,7 @@ export default function SiteHeader() {
       }}
     >
       <Link href="/" aria-label="Pádel Life — Inicio" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <Image src="/brand/logo-dark.png" alt="Pádel Life" width={120} height={52} priority style={{ height: 'auto', width: 'clamp(80px, 12vw, 120px)' }} />
+        <Image src="/brand/logo-dark.png" alt="Pádel Life" width={160} height={69} priority style={{ height: 'auto', width: 'clamp(110px, 16vw, 160px)' }} />
       </Link>
       <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
         <Link

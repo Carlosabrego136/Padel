@@ -28,15 +28,22 @@ export default async function RankingPage() {
   return (
     <>
       <SiteHeader />
-      <main style={{ paddingTop: 72 }}>
+      <main>
+        <div className="page-hero page-hero--sm">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.unsplash.com/photo-1612534847738-b3af9bc31f0c?w=1920&q=80&auto=format&fit=crop"
+            alt="Raqueta de pádel en la cancha"
+            loading="eager"
+          />
+          <div className="page-hero__scrim" />
+          <div className="page-hero__text container">
+            <h1>Ranking de Parejas</h1>
+            <p>Tabla de posiciones actualizada. Selecciona una categoría para ver las parejas.</p>
+          </div>
+        </div>
         <section className="section">
           <div className="container">
-            <h1 className="section__title" style={{ textAlign: 'center', marginBottom: 8 }}>
-              Ranking de Parejas
-            </h1>
-            <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', marginBottom: 32, fontSize: '0.9rem' }}>
-              Tabla de posiciones actualizada. Selecciona una categoría para ver las parejas.
-            </p>
             {categorias.length === 0 ? (
               <p style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>
                 No se pudieron cargar las categorías. Inténtalo de nuevo más tarde.

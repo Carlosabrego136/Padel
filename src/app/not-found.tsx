@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <>
       <SiteHeader />
-      <main style={{ paddingTop: 72, minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main style={{ paddingTop: 104, minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', padding: 32 }}>
           <p style={{ fontSize: '4rem', fontWeight: 900, color: 'var(--color-accent)', lineHeight: 1, marginBottom: 12 }}>
             404

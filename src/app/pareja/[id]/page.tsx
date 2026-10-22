@@ -35,7 +35,7 @@ export default async function ParejaPage({ params }: Props) {
   return (
     <>
       <SiteHeader />
-      <main style={{ paddingTop: 72 }}>
+      <main style={{ paddingTop: 104 }}>
         <section className="section">
           <div className="container" style={{ maxWidth: 700 }}>
             {/* Breadcrumb */}
