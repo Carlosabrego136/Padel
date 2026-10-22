@@ -1477,3 +1477,95 @@ html[data-intro="done"] .hero__cta {
     flex-direction: column;
   }
 }
+
+/* ---------- Estadísticas de pareja ---------- */
+.stats-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.stats-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px 0;
+}
+
+.stats-card__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.stat-tile {
+  padding: 18px 8px 20px;
+  text-align: center;
+  border-right: 1px solid var(--color-border);
+}
+
+.stat-tile:last-child {
+  border-right: none;
+}
+
+.stat-tile__value {
+  font-size: clamp(1.3rem, 5vw, 1.7rem);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.stat-tile__value--win { color: var(--color-success); }
+.stat-tile__value--loss { color: var(--color-error); }
+.stat-tile__value--accent { color: var(--color-accent-border); }
+
+.stat-tile__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+}
+
+.streak-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 18px 18px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.streak-banner--win {
+  background: linear-gradient(90deg, rgba(249, 115, 22, 0.14), rgba(234, 88, 12, 0.06));
+  color: #c2410c;
+}
+
+.streak-banner--loss {
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--color-error);
+}
+
+.streak-banner__icon {
+  flex: none;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+@media (max-width: 420px) {
+  .stat-tile { padding: 14px 4px 16px; }
+  .stat-tile__label { font-size: 0.6rem; }
+}

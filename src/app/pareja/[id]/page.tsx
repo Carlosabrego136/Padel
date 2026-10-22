@@ -67,6 +67,43 @@ export default async function ParejaPage({ params }: Props) {
               </div>
             </div>
 
+            {/* Estadísticas */}
+            <div className="stats-card">
+              <div className="stats-card__head">
+                <span className="stats-card__title">Estadísticas</span>
+              </div>
+              <div className="stats-grid">
+                <div className="stat-tile">
+                  <p className="stat-tile__value">{pareja.estadisticas.jugados}</p>
+                  <p className="stat-tile__label">Jugados</p>
+                </div>
+                <div className="stat-tile">
+                  <p className="stat-tile__value stat-tile__value--win">{pareja.estadisticas.ganados}</p>
+                  <p className="stat-tile__label">Ganados</p>
+                </div>
+                <div className="stat-tile">
+                  <p className="stat-tile__value stat-tile__value--loss">{pareja.estadisticas.perdidos}</p>
+                  <p className="stat-tile__label">Perdidos</p>
+                </div>
+                <div className="stat-tile">
+                  <p className="stat-tile__value stat-tile__value--accent">{pareja.estadisticas.efectividad}%</p>
+                  <p className="stat-tile__label">Efectividad</p>
+                </div>
+              </div>
+              {pareja.estadisticas.racha >= 2 && (
+                <div className="streak-banner streak-banner--win">
+                  <span className="streak-banner__icon">🔥</span>
+                  <span>¡Racha de {pareja.estadisticas.racha} victorias seguidas!</span>
+                </div>
+              )}
+              {pareja.estadisticas.racha <= -2 && (
+                <div className="streak-banner streak-banner--loss">
+                  <span className="streak-banner__icon">📉</span>
+                  <span>{Math.abs(pareja.estadisticas.racha)} derrotas seguidas</span>
+                </div>
+              )}
+            </div>
+
             {/* Jugadores */}
             <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 12 }}>Jugadores</h2>
             <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginBottom: 32 }}>

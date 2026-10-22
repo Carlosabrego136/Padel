@@ -100,6 +100,15 @@ export interface MovimientoRow {
   creado_en: string;
 }
 
+export interface ParejaEstadisticas {
+  jugados: number;
+  ganados: number;
+  perdidos: number;
+  efectividad: number; // 0-100
+  /** Racha actual: positiva = victorias seguidas, negativa = derrotas seguidas, 0 = sin partidos. */
+  racha: number;
+}
+
 export interface ParejaDetalle extends ParejaRanking {
   estado: string;
   cuota_por_jugador: number;
@@ -109,6 +118,7 @@ export interface ParejaDetalle extends ParejaRanking {
   retirada_en: string | null;
   partidos: PartidoConNombres[];
   movimientos: MovimientoRow[];
+  estadisticas: ParejaEstadisticas;
 }
 
 export interface FotoResult {
@@ -300,6 +310,32 @@ export async function getPartidosJornada(jornadaId: number): Promise<PartidoConN
   return r.rows;
 }
 
+/** Calcula ganados/perdidos/racha a partir del historial completo de partidos jugados de una pareja. */
+function calcularEstadisticas(
+  parejaId: string,
+  partidosJugadosAsc: { retadora_id: string; ganadora_id: string | null }[],
+): ParejaEstadisticas {
+  let ganados = 0;
+  let perdidos = 0;
+  let racha = 0;
+
+  for (const p of partidosJugadosAsc) {
+    if (!p.ganadora_id) continue;
+    const gano = p.ganadora_id === parejaId;
+    if (gano) {
+      ganados++;
+      racha = racha >= 0 ? racha + 1 : 1;
+    } else {
+      perdidos++;
+      racha = racha <= 0 ? racha - 1 : -1;
+    }
+  }
+
+  const jugados = ganados + perdidos;
+  const efectividad = jugados > 0 ? Math.round((ganados / jugados) * 100) : 0;
+  return { jugados, ganados, perdidos, efectividad, racha };
+}
+
 export async function getPareja(id: string): Promise<ParejaDetalle | null> {
   const uid = validateUuid(id, 'Pareja');
   const r = await query<ParejaFlatRow>(
@@ -313,7 +349,7 @@ export async function getPareja(id: string): Promise<ParejaDetalle | null> {
 
   const [pareja] = agruparJugadores<ParejaDetalle>(r.rows);
 
-  const [partR, movR] = await Promise.all([
+  const [partR, movR, statsR] = await Promise.all([
     query<PartidoConNombres>(
       `SELECT ${PARTIDO_NOMBRES_SELECT}
        FROM partidos p2
@@ -325,10 +361,17 @@ export async function getPareja(id: string): Promise<ParejaDetalle | null> {
       `SELECT * FROM movimientos WHERE pareja_id = $1 ORDER BY creado_en DESC LIMIT 10`,
       [uid],
     ),
+    query<{ retadora_id: string; ganadora_id: string | null }>(
+      `SELECT retadora_id, ganadora_id FROM partidos
+       WHERE (retadora_id = $1 OR retada_id = $1) AND estado IN ('jugado', 'resuelto_club')
+       ORDER BY jugado_en ASC LIMIT 500`,
+      [uid],
+    ),
   ]);
 
   pareja.partidos = partR.rows;
   pareja.movimientos = movR.rows;
+  pareja.estadisticas = calcularEstadisticas(uid, statsR.rows);
   return pareja;
 }
 
