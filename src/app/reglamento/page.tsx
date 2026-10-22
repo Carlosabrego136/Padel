@@ -11,6 +11,15 @@ export default function ReglamentoPage() {
     <>
       <SiteHeader />
       <main style={{ paddingTop: 72 }}>
+        <div className="page-banner">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="https://images.unsplash.com/photo-1767128890583-b3f8dc30bdbc?w=1600&q=70&auto=format&fit=crop"
+            alt="Jugador de pádel en la cancha"
+            loading="lazy"
+          />
+          <div className="page-banner__overlay" />
+        </div>
         <section className="section">
           <div className="container" style={{ maxWidth: 700 }}>
             <h1 className="section__title" style={{ textAlign: 'center', marginBottom: 32 }}>

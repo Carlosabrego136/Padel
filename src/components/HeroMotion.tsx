@@ -3,28 +3,50 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * Vexel-spec: fondo de video para el hero, con <video> alineado al fondo del contenedor.
- * Carga lazy, muted, loop, playsInline. Si el video no está disponible (o falla), se ve solo el overlay.
- * La URL del video se debe configurar cuando el cliente la proporcione.
+ * Fondo de video del hero (spec Targo): posicionado absoluto, sin recorte
+ * (object-fit: contain), con reintento de reproducción robusto.
+ * La URL del video se reemplaza cuando el cliente la proporcione.
  */
 
-const VIDEO_SRC = '/brand/hero.mp4'; // placeholder: se reemplaza cuando el cliente envíe el video
+const VIDEO_SRC =
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260302_085844_21a8f4b3-dea5-4ede-be16-d53f6973bb14.mp4';
+const MAX_RETRIES = 10;
 
 export default function HeroMotion() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const attempted = useRef(false);
 
   useEffect(() => {
     const el = videoRef.current;
-    if (!el || attempted.current) return;
-    attempted.current = true;
-
-    // Solo reproducir si no hay preferencia de movimiento reducido
+    if (!el) return;
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    el.play().catch(() => {
-      // Video no disponible o bloqueado: no es un error crítico
-    });
+    let attempts = 0;
+    let cancelled = false;
+
+    const tryPlay = () => {
+      if (cancelled || attempts >= MAX_RETRIES) return;
+      attempts += 1;
+      el.muted = true;
+      el.play().catch(() => {
+        // Video no disponible o bloqueado todavía: se reintenta (hasta MAX_RETRIES veces).
+      });
+    };
+
+    tryPlay();
+    const interval = setInterval(tryPlay, 1000);
+
+    const onFirstInteraction = () => {
+      tryPlay();
+    };
+    document.addEventListener('click', onFirstInteraction, { once: true });
+    document.addEventListener('touchstart', onFirstInteraction, { once: true });
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      document.removeEventListener('click', onFirstInteraction);
+      document.removeEventListener('touchstart', onFirstInteraction);
+    };
   }, []);
 
   return (
@@ -36,7 +58,7 @@ export default function HeroMotion() {
         muted
         loop
         playsInline
-        preload="metadata"
+        preload="auto"
         poster="/brand/hero-poster.jpg"
       />
       <div className="hero__overlay" />

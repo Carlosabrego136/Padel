@@ -14,7 +14,7 @@ export default function SiteHeader() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: 'rgba(10, 10, 15, 0.8)',
+        background: 'rgba(242, 241, 240, 0.85)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         borderBottom: '1px solid var(--color-border-subtle)',
@@ -23,15 +23,21 @@ export default function SiteHeader() {
       <Link href="/" aria-label="Pádel Life — Inicio" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Image src="/brand/logo.png" alt="Pádel Life" width={120} height={52} priority style={{ height: 'auto', width: 'clamp(80px, 12vw, 120px)' }} />
       </Link>
-      <nav style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-        <Link href="/ranking" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+      <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
+        <Link
+          href="/ranking"
+          style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}
+        >
           Ranking
         </Link>
-        <Link href="/inscripcion" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
-          Inscripción
-        </Link>
-        <Link href="/reglamento" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+        <Link
+          href="/reglamento"
+          style={{ fontSize: '0.8rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}
+        >
           Reglamento
+        </Link>
+        <Link href="/inscripcion" className="hero__nav-contact" style={{ fontSize: '0.75rem', padding: '10px 18px' }}>
+          Inscripción
         </Link>
       </nav>
     </header>

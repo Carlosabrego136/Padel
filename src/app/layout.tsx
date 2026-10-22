@@ -17,14 +17,20 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0a0a0f',
+  themeColor: '#f2f1f0',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className="intro" suppressHydrationWarning>
       <head>
-        {/* Vexel spec: inline script to drive the entrance animation and set data-intro="done" */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
+        {/* Inline script to drive the entrance animation and set data-intro="done" */}
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
@@ -33,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     document.documentElement.dataset.intro='done';
     return;
   }
-  var els=document.querySelectorAll('.hero__logo,.hero__title,.hero__subtitle,.hero__cta');
+  var els=document.querySelectorAll('.hero__nav-logo,.hero__nav-links,.hero__nav-cta,.hero__title,.hero__subtitle,.hero__cta');
   if(!els.length){document.documentElement.dataset.intro='done';return;}
   var i=0;
   function go(){
