@@ -536,11 +536,11 @@ html[data-intro="done"] .hero__cta {
 .about__text {
   max-width: 520px;
   margin: 32px 0 0 min(160px, 18vw);
-  font-size: clamp(14px, 1.6vw, 17px);
+  font-size: clamp(16px, 1.9vw, 19px);
   line-height: 1.7;
-  color: rgba(226, 232, 240, 0.82);
+  color: #ffffff;
   text-transform: none;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
 
 .about__cta {
