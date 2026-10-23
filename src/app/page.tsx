@@ -155,8 +155,8 @@ export default async function HomePage() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 className="about__placeholder"
-                src="https://images.unsplash.com/photo-1770230901556-4e1c0bacfb09?w=1200&q=80&auto=format&fit=crop"
-                alt="Pareja jugando pádel"
+                src="/brand/como-funciona-foto.jpg"
+                alt="Jugadores de pádel en acción"
                 loading="lazy"
               />
               <div className="about__media-overlay" />

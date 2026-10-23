@@ -599,6 +599,7 @@ html[data-intro="done"] .hero__cta {
   min-height: 260px;
   max-height: 480px;
   object-fit: cover;
+  object-position: center 52%;
   border-radius: var(--radius-lg);
   background: var(--color-bg-card);
   border: 1px solid rgba(46, 240, 253, 0.28);
@@ -621,6 +622,14 @@ html[data-intro="done"] .hero__cta {
   .about__title .indent,
   .about__text,
   .about__cta { margin-left: 0; }
+
+  /* En pantallas angostas, sin forzar una altura mínima alta: así el ancho completo
+     de la foto se conserva y no se recorta a ninguno de los dos jugadores. */
+  .about__media video,
+  .about__media .about__placeholder {
+    min-height: 0;
+    max-height: none;
+  }
 }
 
 /* ---------- Banner de página con título superpuesto (páginas internas) ------ */
