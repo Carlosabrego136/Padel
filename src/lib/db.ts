@@ -1,41 +1,31 @@
-import { Pool, type PoolClient, type PoolConfig, type QueryResult, type QueryResultRow } from 'pg';
+import { Client, type ClientConfig, type QueryResult, type QueryResultRow } from 'pg';
 import { getDbEnv } from './env';
 import { log, serializeError } from './log';
 
 /**
  * Acceso a PostgreSQL (Aiven).
- *  - Pool singleton por instancia (se reutiliza entre invocaciones serverless).
- *  - Todo tiene tiempo límite: conexión 8 s, sentencia 12 s, consulta 15 s, bloqueo 5 s.
- *  - Reintentos SIEMPRE acotados (máx. 3) y solo para errores transitorios/serialización.
+ *  - SIN Pool: el servidor Aiven es compartido (20 conexiones para 7 proyectos) y un Pool deja
+ *    conexiones "dormidas" que acaparan ese límite. Cada consulta/transacción abre su propio
+ *    `Client`, lo usa y lo cierra con `client.end()`.
+ *  - Máximo 2 conexiones simultáneas por instancia (semáforo simple con cola de espera).
+ *  - Reintentos SOLO al conectar (no al ejecutar la consulta) y solo para errores transitorios
+ *    de conexión: 53300 (sin conexiones disponibles), 57P03, ECONNRESET, ETIMEDOUT.
  *  - Las escrituras viven dentro de withTx(): un actor obligatorio queda registrado en la
  *    sesión (app.actor) para que los triggers de auditoría sepan quién modificó qué.
  */
 
-declare global {
-  // eslint-disable-next-line no-var
-  var __padelPool: Pool | undefined;
-}
-
 const MAX_RETRIES_HARD_LIMIT = 3;
-const TRANSIENT_CODES = new Set([
-  'ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'EPIPE', 'ENOTFOUND',
-  '57P01', '57P02', '57P03', '08000', '08003', '08006', '53300',
-]);
-const TX_RETRY_CODES = new Set(['40001', '40P01']);
+const TX_RETRY_CODES = new Set(['40001', '40P01']); // deadlock/serialización dentro de una transacción
 
-// Servidor Postgres sin conexiones disponibles (53300): el servidor es compartido con otros
-// proyectos y se llena de vez en cuando. Reintentos acotados con espera creciente + un poco de
-// azar, para no insistir todos los clientes exactamente al mismo tiempo.
-const BUSY_RETRY_DELAYS_MS = [300, 700, 1300];
+// Errores de CONEXIÓN (no de SQL): el servidor está lleno o tardó en responder. Se reintenta
+// solo el intento de conectar, con espera creciente + un poco de azar.
+const CONNECT_RETRY_CODES = new Set(['53300', '57P03', 'ECONNRESET', 'ETIMEDOUT']);
+const CONNECT_RETRY_DELAYS_MS = [300, 700, 1300];
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const codeOf = (err: unknown): string | undefined => (err as { code?: string } | null)?.code;
-const isTransient = (err: unknown) => {
-  const c = codeOf(err);
-  return !!c && TRANSIENT_CODES.has(c);
-};
 
-function buildConfig(): PoolConfig {
+function buildConfig(): ClientConfig {
   const { DATABASE_URL, DATABASE_CA } = getDbEnv();
   const url = new URL(DATABASE_URL.replace(/^postgresql:/i, 'postgres:'));
   const sslmode = url.searchParams.get('sslmode');
@@ -43,7 +33,7 @@ function buildConfig(): PoolConfig {
   url.searchParams.delete('sslmode');
 
   const isLocal = ['localhost', '127.0.0.1', '::1'].includes(url.hostname);
-  let ssl: PoolConfig['ssl'];
+  let ssl: ClientConfig['ssl'];
   if (sslmode === 'disable' || (isLocal && !sslmode)) {
     ssl = false;
   } else if (DATABASE_CA && DATABASE_CA.trim()) {
@@ -56,61 +46,88 @@ function buildConfig(): PoolConfig {
   return {
     connectionString: url.toString(),
     ssl,
-    // Límite de conexiones: el servidor Postgres (Aiven) es compartido con otros proyectos
-    // y solo admite 20 conexiones en total. Con max:1 esta app nunca acapara más de una.
-    max: 1,
-    idleTimeoutMillis: 2_000,
-    allowExitOnIdle: true,
     connectionTimeoutMillis: 12_000,
-    statement_timeout: 12_000,
+    statement_timeout: 15_000,
     query_timeout: 15_000,
     idle_in_transaction_session_timeout: 20_000,
     application_name: 'padel-life-ranking',
   };
 }
 
-export function getPool(): Pool {
-  if (!globalThis.__padelPool) {
-    const pool = new Pool(buildConfig());
-    pool.on('error', (err) => log.error('db_pool_error', { error: serializeError(err) }));
-    globalThis.__padelPool = pool;
-  }
-  return globalThis.__padelPool;
+// ---------------------------------------------------------------------------
+// Semáforo: máximo 2 conexiones simultáneas a Aiven por instancia de la app.
+// ---------------------------------------------------------------------------
+
+const MAX_CONCURRENT_CONNECTIONS = 2;
+let activeConnections = 0;
+const waitQueue: Array<() => void> = [];
+
+function acquireSlot(): Promise<void> {
+  return new Promise((resolve) => {
+    const tryAcquire = () => {
+      if (activeConnections < MAX_CONCURRENT_CONNECTIONS) {
+        activeConnections++;
+        resolve();
+      } else {
+        waitQueue.push(tryAcquire);
+      }
+    };
+    tryAcquire();
+  });
 }
 
-export async function closePool(): Promise<void> {
-  const pool = globalThis.__padelPool;
-  globalThis.__padelPool = undefined;
-  if (pool) await pool.end();
+function releaseSlot(): void {
+  activeConnections--;
+  const next = waitQueue.shift();
+  if (next) next();
 }
 
-/** Consulta de SOLO LECTURA (o escritura idempotente) con reintentos acotados ante cortes de conexión. */
-export async function query<R extends QueryResultRow = any>(
-  text: string,
-  params: unknown[] = [],
-  opts: { maxRetries?: number } = {},
-): Promise<QueryResult<R>> {
-  const maxRetries = Math.min(Math.max(opts.maxRetries ?? 2, 0), MAX_RETRIES_HARD_LIMIT);
+/** Abre un Client nuevo, reintentando solo si el FALLO AL CONECTAR es transitorio (no reintenta consultas SQL). */
+async function connectWithRetry(): Promise<Client> {
   for (let attempt = 0; ; attempt++) {
+    const client = new Client(buildConfig());
+    client.on('error', (err) => log.error('db_client_error', { error: serializeError(err) }));
     try {
-      return await getPool().query<R>(text, params as any[]);
+      await client.connect();
+      return client;
     } catch (err) {
       const code = codeOf(err);
-      // Caso específico: servidor sin conexiones disponibles. Reintenta hasta 3 veces con
-      // espera fija creciente (300/700/1300 ms) + azar, sin importar opts.maxRetries.
-      if (code === '53300' && attempt < BUSY_RETRY_DELAYS_MS.length) {
-        log.warn('db_query_reintento_ocupado', { intento: attempt + 1, error: serializeError(err) });
-        await sleep(BUSY_RETRY_DELAYS_MS[attempt] + Math.floor(Math.random() * 200));
-        continue;
-      }
-      if (attempt < maxRetries && isTransient(err)) {
-        log.warn('db_query_reintento', { intento: attempt + 1, error: serializeError(err) });
-        await sleep(150 * 2 ** attempt);
+      if (code && CONNECT_RETRY_CODES.has(code) && attempt < CONNECT_RETRY_DELAYS_MS.length) {
+        log.warn('db_connect_reintento', { intento: attempt + 1, error: serializeError(err) });
+        await sleep(CONNECT_RETRY_DELAYS_MS[attempt] + Math.floor(Math.random() * 200));
         continue;
       }
       throw err;
     }
   }
+}
+
+/** Reserva un cupo del semáforo, conecta (con reintento), ejecuta `fn` y SIEMPRE cierra la conexión y libera el cupo. */
+async function withConnection<T>(fn: (client: Client) => Promise<T>): Promise<T> {
+  await acquireSlot();
+  let client: Client | undefined;
+  try {
+    client = await connectWithRetry();
+    return await fn(client);
+  } finally {
+    if (client) {
+      try {
+        await client.end();
+      } catch {
+        /* la conexión se descarta de todos modos */
+      }
+    }
+    releaseSlot();
+  }
+}
+
+/** Consulta de SOLO LECTURA (o escritura idempotente). Abre su propia conexión y la cierra al terminar. */
+export async function query<R extends QueryResultRow = any>(
+  text: string,
+  params: unknown[] = [],
+  _opts: { maxRetries?: number } = {},
+): Promise<QueryResult<R>> {
+  return withConnection((client) => client.query<R>(text, params as any[]));
 }
 
 // ---------------------------------------------------------------------------
@@ -158,7 +175,7 @@ function limpiarParaAuditoria(value: unknown, depth = 0): unknown {
 
 const cleanLabel = (s: string) => s.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, 120) || 'desconocido';
 
-function makeTx(client: PoolClient, actor: Actor): Tx {
+function makeTx(client: Client, actor: Actor): Tx {
   let count = 0;
   return {
     actor,
@@ -194,13 +211,19 @@ export interface TxOptions {
   requireAudit?: boolean;
 }
 
+/**
+ * Transacción con su propia conexión dedicada (abre, BEGIN…COMMIT/ROLLBACK, cierra). Sigue sin
+ * usar Pool: la conexión vive solo mientras dura la transacción (normalmente milisegundos) y
+ * jamás queda abierta "dormida" entre peticiones.
+ */
 export async function withTx<T>(actor: Actor, fn: (tx: Tx) => Promise<T>, opts: TxOptions = {}): Promise<T> {
   const maxRetries = Math.min(Math.max(opts.maxRetries ?? 3, 0), MAX_RETRIES_HARD_LIMIT);
 
   for (let attempt = 0; ; attempt++) {
-    const client = await getPool().connect();
-    let broken = false;
+    await acquireSlot();
+    let client: Client | undefined;
     try {
+      client = await connectWithRetry();
       await client.query('BEGIN');
       await client.query("SELECT set_config('app.actor', $1, true)", [cleanLabel(actor.label)]);
       await client.query("SET LOCAL lock_timeout = '5s'");
@@ -212,11 +235,12 @@ export async function withTx<T>(actor: Actor, fn: (tx: Tx) => Promise<T>, opts: 
       await client.query('COMMIT');
       return result;
     } catch (err) {
-      try {
-        await client.query('ROLLBACK');
-      } catch (rollbackErr) {
-        broken = true; // la conexión quedó en mal estado: se descarta del pool
-        log.error('db_rollback_fallo', { error: serializeError(rollbackErr) });
+      if (client) {
+        try {
+          await client.query('ROLLBACK');
+        } catch (rollbackErr) {
+          log.error('db_rollback_fallo', { error: serializeError(rollbackErr) });
+        }
       }
       const c = codeOf(err);
       if (attempt < maxRetries && c && TX_RETRY_CODES.has(c)) {
@@ -226,7 +250,14 @@ export async function withTx<T>(actor: Actor, fn: (tx: Tx) => Promise<T>, opts: 
       }
       throw err;
     } finally {
-      client.release(broken ? true : undefined);
+      if (client) {
+        try {
+          await client.end();
+        } catch {
+          /* la conexión se descarta de todos modos */
+        }
+      }
+      releaseSlot();
     }
   }
 }
@@ -237,7 +268,7 @@ export const withAdminTx = <T>(actor: Actor, fn: (tx: Tx) => Promise<T>, opts: O
 
 export async function pingDb(): Promise<boolean> {
   try {
-    await query('SELECT 1', [], { maxRetries: 1 });
+    await query('SELECT 1');
     return true;
   } catch (err) {
     log.error('db_ping_fallo', { error: serializeError(err) });
