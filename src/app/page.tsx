@@ -132,6 +132,7 @@ export default async function HomePage() {
 
       {/* Cómo funciona — spec Targo: sección "About" de dos columnas */}
       <section className="about">
+        <div className="about__bg" aria-hidden="true" />
         <div className="about__wrap">
           <div className="about__col-text">
             <h2 className="hero__title about__title">
