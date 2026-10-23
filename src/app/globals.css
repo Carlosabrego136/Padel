@@ -658,9 +658,10 @@ html[data-intro="done"] .hero__cta {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
 
-/* ---------- Sección del reglamento: fondo de cancha de pádel con transición ---
-   suave desde el banner de arriba (que no se toca), con tarjetas en estilo
-   "vidrio" oscuro para que el texto se lea perfecto sobre la foto. */
+/* ---------- Sección del reglamento: fondo navy con brillo cian (sin fotos, así
+   nunca se pixelea en ningún tamaño de pantalla), con transición suave desde el
+   banner de arriba (que no se toca), y tarjetas en estilo "vidrio" oscuro para
+   que el texto se lea perfecto. */
 .reglamento-section {
   position: relative;
   overflow: hidden;
@@ -671,18 +672,10 @@ html[data-intro="done"] .hero__cta {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image:
-    linear-gradient(
-      180deg,
-      rgba(20, 22, 24, 0.5) 0%,
-      rgba(8, 12, 22, 0.3) 10%,
-      rgba(6, 10, 18, 0.22) 40%,
-      rgba(6, 10, 18, 0.3) 100%
-    ),
-    url('/brand/reglamento-bg-desktop.jpg');
-  background-size: 100% 100%, cover;
-  background-position: top center, top center;
-  background-repeat: no-repeat, no-repeat;
+  background:
+    radial-gradient(55% 48% at 12% 0%, rgba(46, 240, 253, 0.18) 0%, rgba(46, 240, 253, 0) 70%),
+    radial-gradient(50% 42% at 92% 8%, rgba(21, 188, 223, 0.16) 0%, rgba(21, 188, 223, 0) 70%),
+    linear-gradient(180deg, rgba(20, 22, 24, 0.6) 0%, #0a0f1c 12%, #070b16 45%, #060a16 100%);
 }
 
 .reglamento-section__inner {
@@ -770,19 +763,6 @@ html[data-intro="done"] .hero__cta {
   color: rgba(226, 232, 240, 0.85);
 }
 
-@media (max-width: 700px) {
-  .reglamento-section__bg {
-    background-image:
-      linear-gradient(
-        180deg,
-        rgba(20, 22, 24, 0.5) 0%,
-        rgba(8, 12, 22, 0.3) 10%,
-        rgba(6, 10, 18, 0.22) 40%,
-        rgba(6, 10, 18, 0.3) 100%
-      ),
-      url('/brand/reglamento-bg-mobile.jpg');
-  }
-}
 
 @media (max-width: 599px) {
   .page-hero { margin-top: 76px; }
