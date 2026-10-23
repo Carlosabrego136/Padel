@@ -180,9 +180,29 @@ export async function aprobarPareja(parejaId: string, pagoConfirmado: boolean, a
     if (!pareja) throw notFound('Pareja no encontrada');
     if (pareja.estado !== 'pendiente') throw conflict(`La pareja ya tiene estado "${pareja.estado}"`);
 
+    // Si el sorteo inicial de la categoría ya se hizo, esta es una inscripción tardía:
+    // entra directo al último lugar disponible, tal como lo indica la convocatoria del club.
+    // Se bloquea la fila de la categoría para que dos aprobaciones simultáneas no calculen
+    // el mismo "último lugar" y choquen entre sí.
+    const catR = await tx.query<{ sorteo_realizado: boolean }>(
+      "SELECT sorteo_realizado FROM categorias WHERE id = $1 FOR UPDATE",
+      [pareja.categoria_id],
+    );
+    const sorteoHecho = catR.rows[0]?.sorteo_realizado ?? false;
+
+    let posicionNueva: number | null = null;
+    if (sorteoHecho) {
+      await tx.query('SET CONSTRAINTS parejas_posicion_unica DEFERRED');
+      const maxR = await tx.query<{ maxp: number | null }>(
+        `SELECT MAX(posicion) AS maxp FROM parejas WHERE categoria_id = $1 AND estado = 'aprobada'`,
+        [pareja.categoria_id],
+      );
+      posicionNueva = (maxR.rows[0]?.maxp ?? 0) + 1;
+    }
+
     await tx.query(
-      `UPDATE parejas SET estado = 'aprobada', pago_confirmado = $2, aprobada_en = now() WHERE id = $1`,
-      [parejaId, pagoConfirmado],
+      `UPDATE parejas SET estado = 'aprobada', pago_confirmado = $2, aprobada_en = now(), posicion = $3 WHERE id = $1`,
+      [parejaId, pagoConfirmado, posicionNueva],
     );
 
     await tx.audit({
@@ -190,7 +210,12 @@ export async function aprobarPareja(parejaId: string, pagoConfirmado: boolean, a
       entidad: 'pareja',
       entidadId: parejaId,
       antes: { estado: 'pendiente' },
-      despues: { estado: 'aprobada', pago_confirmado: pagoConfirmado },
+      despues: {
+        estado: 'aprobada',
+        pago_confirmado: pagoConfirmado,
+        posicion: posicionNueva,
+        inscripcion_tardia: sorteoHecho,
+      },
     });
   });
 }
