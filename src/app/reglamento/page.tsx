@@ -265,8 +265,9 @@ export default async function ReglamentoPage() {
           </div>
         </div>
 
-        <section className="section">
-          <div className="container" style={{ maxWidth: 920 }}>
+        <section className="section reglamento-section">
+          <div className="reglamento-section__bg" aria-hidden="true" />
+          <div className="container reglamento-section__inner" style={{ maxWidth: 920 }}>
             <div className="rules-grid">
               {REGLAS.map((r) => (
                 <div key={r.num} className="rule-card">

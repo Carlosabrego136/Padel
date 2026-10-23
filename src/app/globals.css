@@ -658,6 +658,38 @@ html[data-intro="done"] .hero__cta {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* ---------- Sección del reglamento: fondo de cancha de pádel con transición ---
+   suave desde el banner de arriba (que no se toca), con tarjetas en estilo
+   "vidrio" oscuro para que el texto se lea perfecto sobre la foto. */
+.reglamento-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.reglamento-section__bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(20, 22, 24, 0.82) 0%,
+      rgba(8, 12, 22, 0.9) 8%,
+      rgba(6, 10, 18, 0.94) 35%,
+      rgba(6, 10, 18, 0.97) 100%
+    ),
+    url('/brand/reglamento-bg-desktop.jpg');
+  background-size: 100% 100%, cover;
+  background-position: top center, top center;
+  background-repeat: no-repeat, no-repeat;
+}
+
+.reglamento-section__inner {
+  position: relative;
+  z-index: 1;
+}
+
 /* ---------- Tarjetas de reglas (reglamento) --------------------------------- */
 .rules-grid {
   display: grid;
@@ -667,10 +699,13 @@ html[data-intro="done"] .hero__cta {
 
 .rule-card {
   position: relative;
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
+  background: rgba(10, 14, 26, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(46, 240, 253, 0.18);
   border-radius: var(--radius-lg);
   padding: 28px 24px 24px;
+  box-shadow: 0 20px 50px -26px rgba(0, 0, 0, 0.7);
 }
 
 .rule-card__num {
@@ -685,25 +720,27 @@ html[data-intro="done"] .hero__cta {
   font-size: 1rem;
   clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
   margin-bottom: 12px;
+  box-shadow: 0 0 0 1px rgba(21, 188, 223, 0.35), 0 8px 22px -8px rgba(15, 163, 194, 0.7);
 }
 
 .rule-card__title {
   font-size: 1rem;
   font-weight: 700;
+  color: #fff;
   margin-bottom: 10px;
 }
 
 .rule-card__body {
   font-size: 0.9rem;
   line-height: 1.7;
-  color: var(--color-text-muted);
+  color: rgba(226, 232, 240, 0.8);
   text-transform: none;
 }
 
 .reglamento-list {
   margin-top: 8px;
   padding-left: 18px;
-  color: var(--color-text-muted);
+  color: rgba(226, 232, 240, 0.8);
 }
 
 .rule-card__sub {
@@ -717,7 +754,7 @@ html[data-intro="done"] .hero__cta {
 .rule-card__sub-title {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--color-text);
+  color: #fff;
   text-transform: none;
   letter-spacing: normal;
   margin-bottom: 4px;
@@ -726,11 +763,25 @@ html[data-intro="done"] .hero__cta {
 .rule-card__note {
   margin-top: 14px;
   padding: 10px 14px;
-  background: var(--color-bg-alt);
+  background: rgba(46, 240, 253, 0.08);
   border-left: 3px solid var(--color-accent);
   border-radius: 4px;
   font-size: 0.85rem;
-  color: var(--color-text-secondary);
+  color: rgba(226, 232, 240, 0.85);
+}
+
+@media (max-width: 700px) {
+  .reglamento-section__bg {
+    background-image:
+      linear-gradient(
+        180deg,
+        rgba(20, 22, 24, 0.82) 0%,
+        rgba(8, 12, 22, 0.9) 8%,
+        rgba(6, 10, 18, 0.94) 35%,
+        rgba(6, 10, 18, 0.97) 100%
+      ),
+      url('/brand/reglamento-bg-mobile.jpg');
+  }
 }
 
 @media (max-width: 599px) {
