@@ -659,6 +659,18 @@ html[data-intro="done"] .hero__cta {
   box-shadow: 0 0 0 1px var(--color-accent-glow);
 }
 
+.dashboard-stat-card,
+.dashboard-jornada-card {
+  cursor: pointer;
+}
+
+.dashboard-stat-card:active,
+.dashboard-jornada-card:active {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent-glow);
+  transform: scale(0.98);
+}
+
 /* ---------- Ranking table -------------------------------------------------- */
 .ranking-table-wrap {
   width: 100%;

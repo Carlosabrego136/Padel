@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { adminGetDashboard } from '@/lib/queries';
 import { requireAdminPage } from '@/lib/auth-page';
 
@@ -35,23 +36,27 @@ export default async function DashboardPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
         <StatCard
+          href="/admin/parejas"
           label="Parejas totales"
           value={totalParejas}
-          help="Todas las parejas inscritas, sin importar su estado (aprobadas, pendientes, rechazadas o retiradas)."
+          help="Todas las parejas inscritas, sin importar su estado (aprobadas, pendientes, rechazadas o retiradas). Toca para ver la lista."
         />
         <StatCard
+          href="/admin/parejas?estado=aprobada"
           label="Jugadores activos"
           value={data.total_jugadores}
-          help="Jugadores que forman parte de una pareja ya aprobada."
+          help="Jugadores que forman parte de una pareja ya aprobada. Toca para ver las parejas aprobadas."
         />
         <StatCard
+          href="/admin/jornadas"
           label="Jornadas"
           value={`${data.jornadas_cerradas} / ${data.jornadas_total}`}
-          help="Jornadas (semanas) ya cerradas, de las programadas en total."
+          help="Jornadas (semanas) ya cerradas, de las programadas en total. Toca para ver todas las jornadas."
         />
         {data.parejas_por_estado.map((r) => (
           <StatCard
             key={r.estado}
+            href={`/admin/parejas?estado=${r.estado}`}
             label={`Parejas ${r.estado}s`}
             value={r.total}
             help={ESTADO_AYUDA[r.estado]}
@@ -60,8 +65,8 @@ export default async function DashboardPage() {
       </div>
 
       {data.proxima_jornada && (
-        <div className="card" style={{ padding: 20 }}>
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8 }}>Jornada actual</h2>
+        <Link href="/admin/jornadas" className="card dashboard-jornada-card" style={{ padding: 20, display: 'block', textDecoration: 'none' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: 8, color: 'var(--color-text)' }}>Jornada actual</h2>
           <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
             Jornada #{data.proxima_jornada.numero ?? '—'} · Estado: {data.proxima_jornada.estado}
           </p>
@@ -72,24 +77,34 @@ export default async function DashboardPage() {
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.8rem', marginTop: 8 }}>
             La jornada es la semana en la que las parejas juegan sus retos. Se cierra sola cuando llega su fecha de
             cierre y el ranking se actualiza automáticamente; también puedes cerrarla manualmente desde
-            &quot;Jornadas&quot; si ya se jugaron todos los partidos.
+            &quot;Jornadas&quot; si ya se jugaron todos los partidos. Toca esta tarjeta para ir a &quot;Jornadas&quot;.
           </p>
-        </div>
+        </Link>
       )}
     </div>
   );
 }
 
 const ESTADO_AYUDA: Record<string, string> = {
-  pendiente: 'Esperan tu revisión para aprobarse o rechazarse. No aparecen en el ranking público todavía.',
-  aprobada: 'Ya confirmadas por el club. Participan en el ranking (una vez que tengan posición asignada).',
-  rechazada: 'No fueron aceptadas. No aparecen en el ranking.',
-  retirada: 'Salieron del ranking por su propia decisión o por indicación del club. Su historial se conserva.',
+  pendiente: 'Esperan tu revisión para aprobarse o rechazarse. No aparecen en el ranking público todavía. Toca para verlas.',
+  aprobada: 'Ya confirmadas por el club. Participan en el ranking (una vez que tengan posición asignada). Toca para verlas.',
+  rechazada: 'No fueron aceptadas. No aparecen en el ranking. Toca para verlas.',
+  retirada: 'Salieron del ranking por su propia decisión o por indicación del club. Su historial se conserva. Toca para verlas.',
 };
 
-function StatCard({ label, value, help }: { label: string; value: string | number; help?: string }) {
+function StatCard({
+  href,
+  label,
+  value,
+  help,
+}: {
+  href: string;
+  label: string;
+  value: string | number;
+  help?: string;
+}) {
   return (
-    <div className="card" style={{ padding: 20, textAlign: 'center' }}>
+    <Link href={href} className="card dashboard-stat-card" style={{ padding: 20, textAlign: 'center', display: 'block', textDecoration: 'none' }}>
       <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-accent)' }}>{value}</div>
       <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: 4 }}>{label}</div>
       {help && (
@@ -97,6 +112,6 @@ function StatCard({ label, value, help }: { label: string; value: string | numbe
           {help}
         </div>
       )}
-    </div>
+    </Link>
   );
 }
