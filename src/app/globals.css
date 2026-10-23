@@ -161,14 +161,14 @@ button, input, select, textarea {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  /* Panel casi transparente: se ve bien claro al jugador de la foto por detrás; el texto
-     se mantiene legible gracias a su propia sombra (ver .hero__title / .hero__subtitle). */
+  /* Velo oscuro (no un panel claro): se sigue viendo bien claro al jugador de la foto,
+     y el texto va en blanco encima (ver .hero__title / .hero__subtitle), como en celular. */
   background: linear-gradient(
     90deg,
-    rgba(242, 241, 240, 0.26) 0%,
-    rgba(242, 241, 240, 0.26) 50%,
-    rgba(242, 241, 240, 0.12) 72%,
-    rgba(242, 241, 240, 0) 100%
+    rgba(6, 10, 18, 0.58) 0%,
+    rgba(6, 10, 18, 0.50) 45%,
+    rgba(6, 10, 18, 0.22) 72%,
+    rgba(6, 10, 18, 0) 100%
   );
 }
 
@@ -184,9 +184,26 @@ button, input, select, textarea {
 }
 
 .hero__nav-logo {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 6px 14px;
+}
+
+/* Placa clara tipo vidrio detrás del logo (que es oscuro): siempre se ve, sin importar
+   qué parte de la foto quede justo detrás. */
+.hero__nav-logo::before {
+  content: '';
+  position: absolute;
+  inset: -2px -10px;
+  background: rgba(246, 247, 249, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.2);
+  z-index: -1;
 }
 
 .hero__nav-logo img {
@@ -205,13 +222,29 @@ button, input, select, textarea {
   font-size: clamp(12px, 2.4vw, 15px);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: #fff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
   white-space: nowrap;
 }
-.hero__nav-link:hover { color: #000; }
+.hero__nav-link:hover { color: var(--color-accent); }
 
 .hero__nav-cta {
   margin-left: auto;
+}
+
+/* Botón "Inscripción" dentro del hero: fondo de vidrio oscuro propio, para que siempre se
+   vea sin importar la opacidad del velo en ese punto (el mismo botón en otras páginas, fuera
+   del hero, no se toca). */
+.hero .hero__nav-contact {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(6, 10, 18, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.hero .hero__nav-contact:hover {
+  background: rgba(6, 10, 18, 0.58);
+  color: #fff;
 }
 
 .hero__nav-burger {
@@ -256,7 +289,8 @@ button, input, select, textarea {
 .hero__title {
   font-size: min(clamp(34px, 7.6vw, 80px), 9.2vh);
   font-weight: 700;
-  text-shadow: 0 2px 18px rgba(255, 255, 255, 0.55), 0 1px 3px rgba(255, 255, 255, 0.4);
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.5);
 }
 
 .hero__title span { display: block; }
@@ -269,12 +303,12 @@ button, input, select, textarea {
 
 .hero__subtitle {
   font-size: clamp(1rem, calc(var(--u) * 2.2), 1.3rem);
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.9);
   text-transform: none;
   letter-spacing: normal;
   max-width: 520px;
   margin-top: calc(var(--u) * 3);
-  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
 }
 
 .hero__cta,
