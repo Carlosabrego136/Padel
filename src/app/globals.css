@@ -963,8 +963,26 @@ html[data-intro="done"] .hero__cta {
 
 /* ---------- Admin layout --------------------------------------------------- */
 .admin-layout {
+  position: relative;
   display: flex;
   min-height: 100dvh;
+}
+
+/* Video de fondo fijo, detrás de todo el panel de administración */
+.admin-bg-video {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+.admin-bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(160deg, rgba(242, 241, 240, 0.86) 0%, rgba(242, 241, 240, 0.78) 50%, rgba(21, 188, 223, 0.22) 100%);
 }
 
 .admin-sidebar {
@@ -972,7 +990,9 @@ html[data-intro="done"] .hero__cta {
   top: 0;
   width: 240px;
   height: 100dvh;
-  background: var(--color-bg-alt);
+  background: rgba(247, 246, 248, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-right: 1px solid var(--color-border);
   padding: 20px 12px;
   display: flex;
@@ -980,6 +1000,14 @@ html[data-intro="done"] .hero__cta {
   gap: 4px;
   overflow-y: auto;
   flex-shrink: 0;
+}
+
+.admin-sidebar__logo {
+  display: block;
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  margin-bottom: 4px;
 }
 
 .admin-nav-link {
@@ -1006,6 +1034,64 @@ html[data-intro="done"] .hero__cta {
   flex: 1;
   padding: 24px;
   min-width: 0;
+  background: rgba(242, 241, 240, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* ---------- Login (admin) --------------------------------------------------- */
+.admin-login-page {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.admin-login-card {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.admin-login-logo {
+  display: block;
+  max-width: 220px;
+  width: 70%;
+  height: auto;
+  margin: 0 auto 16px;
+}
+
+.pw-field-wrap {
+  position: relative;
+}
+
+.pw-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pw-toggle:hover {
+  color: var(--color-text);
+}
+
+.pw-toggle svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* ---------- Toast / alert -------------------------------------------------- */

@@ -37,6 +37,18 @@ export default function AdminShell({ email, children }: { email: string; childre
 
   return (
     <div className="admin-layout">
+      {/* Video de fondo */}
+      <video
+        className="admin-bg-video"
+        src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260730_214302_820066a8-f3de-43f3-ab1d-96bd8b2716e6.mp4"
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
+      <div className="admin-bg-overlay" aria-hidden="true" />
+
       {/* Mobile hamburger */}
       <button
         className="admin-menu-toggle"
@@ -62,9 +74,8 @@ export default function AdminShell({ email, children }: { email: string; childre
 
       <aside className={`admin-sidebar${sidebarOpen ? ' open' : ''}`}>
         <div style={{ padding: '20px 16px 12px', borderBottom: '1px solid var(--color-border)' }}>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-accent)' }}>
-            Pádel Life
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/logo-dark.png" alt="Pádel Life" className="admin-sidebar__logo" />
           <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
             {email}
           </div>
