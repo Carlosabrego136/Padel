@@ -577,6 +577,33 @@ html[data-intro="done"] .hero__cta {
   color: var(--color-text-muted);
 }
 
+.rule-card__sub {
+  margin-top: 16px;
+}
+
+.rule-card__sub:first-of-type {
+  margin-top: 0;
+}
+
+.rule-card__sub-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+  text-transform: none;
+  letter-spacing: normal;
+  margin-bottom: 4px;
+}
+
+.rule-card__note {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--color-bg-alt);
+  border-left: 3px solid var(--color-accent);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
 @media (max-width: 599px) {
   .page-hero { margin-top: 76px; }
 }
@@ -1568,4 +1595,77 @@ html[data-intro="done"] .hero__cta {
 @media (max-width: 420px) {
   .stat-tile { padding: 14px 4px 16px; }
   .stat-tile__label { font-size: 0.6rem; }
+}
+
+/* ---------- Franja de contacto (home) ---------- */
+.contact-strip {
+  background: var(--color-on-accent);
+  border-bottom: 3px solid var(--color-accent);
+}
+
+.contact-strip__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  padding: 20px 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-strip__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #f2f1f0;
+  text-decoration: none;
+}
+
+.contact-strip__item--link {
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.contact-strip__item--link:hover {
+  opacity: 0.8;
+}
+
+.contact-strip__icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.contact-strip__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.contact-strip__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-accent);
+  margin: 0;
+}
+
+.contact-strip__value {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 2px 0 0;
+}
+
+@media (max-width: 599px) {
+  .contact-strip__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 }

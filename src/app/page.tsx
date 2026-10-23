@@ -2,8 +2,16 @@ import Link from 'next/link';
 import HeroMotion from '@/components/HeroMotion';
 import HeroNav from '@/components/HeroNav';
 import SiteFooter from '@/components/SiteFooter';
+import { getConfig } from '@/lib/queries';
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const config = await getConfig().catch(() => new Map<string, string>());
+  const telefono = config.get('club_telefono') ?? '';
+  const direccion = config.get('club_direccion') ?? '';
+  const telefonoLink = telefono ? `https://wa.me/52${telefono}` : '';
+
   return (
     <>
     <main>
@@ -27,6 +35,49 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Contacto — dirección y WhatsApp del club, bien visible */}
+      {(telefono || direccion) && (
+        <section className="contact-strip">
+          <div className="container contact-strip__inner">
+            {direccion && (
+              <div className="contact-strip__item">
+                <span className="contact-strip__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                    <circle cx="12" cy="9.5" r="2.4" stroke="currentColor" strokeWidth="1.8" />
+                  </svg>
+                </span>
+                <div>
+                  <p className="contact-strip__label">Dirección</p>
+                  <p className="contact-strip__value">{direccion}</p>
+                </div>
+              </div>
+            )}
+            {telefono && (
+              <a className="contact-strip__item contact-strip__item--link" href={telefonoLink} target="_blank" rel="noopener noreferrer">
+                <span className="contact-strip__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Z"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                  </svg>
+                </span>
+                <div>
+                  <p className="contact-strip__label">Solo WhatsApp &middot; no hay línea telefónica</p>
+                  <p className="contact-strip__value">{formatTelHome(telefono)}</p>
+                </div>
+              </a>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Cómo funciona — spec Targo: sección "About" de dos columnas */}
       <section className="about">
         <div className="about__wrap">
@@ -37,9 +88,9 @@ export default function HomePage() {
             </h2>
             <p className="about__text">
               Regístrate con tu pareja en la categoría que les corresponda y el club confirmará su inscripción.
-              Cada semana puedes retar a la pareja que está una posición arriba: si ganas, subes; si pierdes, bajas.
-              Al llegar al primer lugar de tu categoría, puedes ascender retando al último lugar de la categoría
-              superior.
+              Cada semana juegas un solo partido: puede tocarte retar a la pareja de arriba, o que te rete la de
+              abajo. Si ganas, subes; si pierdes, bajas. Al llegar al primer lugar de tu categoría, puedes ascender
+              retando al último lugar de la categoría superior.
             </p>
             <Link href="/reglamento" className="btn-chamfer about__cta">
               Ver reglamento
@@ -79,4 +130,9 @@ export default function HomePage() {
     <SiteFooter />
     </>
   );
+}
+
+function formatTelHome(t: string): string {
+  if (t.length !== 10) return t;
+  return `${t.slice(0, 3)} ${t.slice(3, 6)} ${t.slice(6)}`;
 }

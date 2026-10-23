@@ -567,6 +567,18 @@ export async function crearPartido(
       posRetada = retadaR.rows[0].posicion;
     }
 
+    // Un solo partido por semana por pareja: ninguna de las dos (retadora ni retada) puede
+    // ya estar comprometida en otro partido (como retadora o como retada) de esta jornada.
+    const conflictoR = await tx.query<{ id: string }>(
+      `SELECT id FROM partidos
+       WHERE jornada_id = $1 AND estado <> 'cancelado'
+         AND (retadora_id = $2 OR retada_id = $2 OR retadora_id = $3 OR retada_id = $3)`,
+      [data.jornadaId, data.retadoraId, retadaId],
+    );
+    if (conflictoR.rows.length > 0) {
+      throw conflict('Una de las dos parejas ya tiene un partido programado esta semana (solo se permite un partido por semana por pareja)');
+    }
+
     // Fecha de juego
     let fechaJuego: Date | null = null;
     if (data.fechaJuego) {

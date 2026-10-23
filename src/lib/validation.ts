@@ -192,6 +192,11 @@ export const CONFIG_DEFS: Record<string, ConfigDef> = {
   },
   num_canchas: entero('Número de canchas', 1, 12),
   club_telefono: { etiqueta: 'Teléfono del club (10 dígitos)', validar: (v) => (/^\d{10}$/.test(v) ? null : 'Debe tener 10 dígitos') },
+  club_direccion: {
+    etiqueta: 'Dirección del club',
+    ayuda: 'Se muestra de forma destacada en la página principal.',
+    validar: (v) => (v.length >= 5 && v.length <= 200 && !/[<>]/.test(v) ? null : 'Escribe una dirección válida (5-200 caracteres)'),
+  },
   club_instagram: { etiqueta: 'Instagram (usuario)', validar: (v) => (/^[A-Za-z0-9._]{1,30}$/.test(v) ? null : 'Usuario no válido') },
   club_facebook: { etiqueta: 'Facebook (nombre de la página)', validar: (v) => (v.length >= 2 && v.length <= 60 && !/[<>]/.test(v) ? null : 'Nombre no válido') },
   club_sitio: {
