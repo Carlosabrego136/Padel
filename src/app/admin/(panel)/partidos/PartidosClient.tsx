@@ -199,10 +199,10 @@ export default function PartidosClient({ jornadas }: Props) {
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {p.estado === 'programado' && (
                         <>
-                          <Btn label="Resultado" onClick={() => openModal('resultado', p)} />
-                          <Btn label="Resolver" onClick={() => openModal('resolver', p)} />
-                          <Btn label="Programar" onClick={() => openModal('programar', p)} />
-                          <Btn label="Cancelar" onClick={() => openModal('cancelar', p)} danger />
+                          <Btn label="Resultado" onClick={() => openModal('resultado', p)} title="Captura el marcador del partido jugado (quien gane sube, quien pierda baja)." />
+                          <Btn label="Resolver" onClick={() => openModal('resolver', p)} title="Úsalo cuando el partido no se jugó por falta de acuerdo entre las parejas; tú decides la ganadora según la evidencia." />
+                          <Btn label="Programar" onClick={() => openModal('programar', p)} title="Asigna fecha, hora y cancha al partido (solo informativo, no es obligatorio)." />
+                          <Btn label="Cancelar" onClick={() => openModal('cancelar', p)} danger title="Cancela el partido por completo; no cuenta para el ranking." />
                         </>
                       )}
                     </div>
@@ -238,6 +238,10 @@ export default function PartidosClient({ jornadas }: Props) {
 
             {modal === 'resultado' && (
               <>
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+                  Captura el marcador de cada set jugado. La pareja que gane el partido sube una posición y la que
+                  pierda baja una (se calcula automáticamente al guardar).
+                </p>
                 {sets.map((s, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontSize: '0.85rem', width: 50 }}>Set {i + 1}:</span>
@@ -276,6 +280,11 @@ export default function PartidosClient({ jornadas }: Props) {
 
             {modal === 'resolver' && (
               <>
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+                  Úsalo solo cuando las dos parejas no se pusieron de acuerdo para jugar. Revisa las capturas de
+                  pantalla que te hayan mandado y elige a quién le das el partido como ganadora; escribe el motivo
+                  de tu decisión.
+                </p>
                 <div className="form-group">
                   <label className="form-label">Ganadora</label>
                   <select className="form-input" value={ganadoraId} onChange={(e) => setGanadoraId(e.target.value)}>
@@ -294,6 +303,10 @@ export default function PartidosClient({ jornadas }: Props) {
 
             {modal === 'programar' && (
               <>
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+                  Opcional: anota el día, hora y número de cancha en que se jugará este partido, para que quede
+                  registrado. No afecta el resultado ni el ranking.
+                </p>
                 <div className="form-group">
                   <label className="form-label">Fecha y hora</label>
                   <input type="datetime-local" className="form-input" value={fechaJuego} onChange={(e) => setFechaJuego(e.target.value)} />
@@ -308,6 +321,10 @@ export default function PartidosClient({ jornadas }: Props) {
 
             {modal === 'cancelar' && (
               <>
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+                  Cancela este partido por completo (por ejemplo, si se programó por error). No cuenta para el
+                  ranking y ninguna pareja sube ni baja.
+                </p>
                 <div className="form-group">
                   <label className="form-label">Motivo (mínimo 5 caracteres)</label>
                   <textarea className="form-input" rows={3} maxLength={300} value={motivo} onChange={(e) => setMotivo(e.target.value)} />
@@ -322,11 +339,22 @@ export default function PartidosClient({ jornadas }: Props) {
   );
 }
 
-function Btn({ label, onClick, danger }: { label: string; onClick: () => void; danger?: boolean }) {
+function Btn({
+  label,
+  onClick,
+  danger,
+  title,
+}: {
+  label: string;
+  onClick: () => void;
+  danger?: boolean;
+  title?: string;
+}) {
   return (
     <button
       className={`btn ${danger ? 'btn-danger' : 'btn-secondary'}`}
       onClick={onClick}
+      title={title}
       style={{ fontSize: '0.75rem', padding: '4px 8px' }}
     >
       {label}

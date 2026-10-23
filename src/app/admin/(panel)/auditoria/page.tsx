@@ -47,10 +47,11 @@ export default async function AuditoriaPage({
     <div>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 8 }}>Auditoría</h1>
       <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 20 }}>
-        Registro de acciones administrativas y cambios automáticos en la base de datos.
+        Aquí queda guardado un historial de todo lo que pasa en el sistema, por si necesitas revisar qué se hizo y
+        cuándo. No necesitas usar esta sección para el trabajo diario, es solo de consulta.
       </p>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
         <a
           href="/admin/auditoria?tab=log"
           className={`btn btn-sm ${tab === 'log' ? 'btn-primary' : 'btn-secondary'}`}
@@ -64,6 +65,11 @@ export default async function AuditoriaPage({
           Cambios en base de datos
         </a>
       </div>
+      <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 20 }}>
+        {tab === 'log'
+          ? 'Quién hizo qué acción (aprobar, rechazar, cerrar jornada, etc.) y cuándo.'
+          : 'Detalle técnico de cada cambio guardado en la base de datos, con el valor antes y después.'}
+      </p>
 
       {tab === 'log' && logData && (
         <div style={{ overflowX: 'auto' }}>

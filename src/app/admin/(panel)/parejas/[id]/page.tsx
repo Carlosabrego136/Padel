@@ -31,6 +31,15 @@ export default async function ParejaDetallePage({ params }: { params: { id: stri
             <span className={ESTADO_BADGE[pareja.estado]}>{pareja.estado}</span>
           </Info>
           <Info label="Posición" value={pareja.posicion != null ? `#${pareja.posicion}` : 'Sin posición'} />
+          {pareja.posicion == null && pareja.estado === 'aprobada' && (
+            <div style={{ gridColumn: '1 / -1' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
+                Esta pareja está aprobada pero todavía no tiene lugar en el ranking: falta hacer el{' '}
+                <strong>sorteo inicial</strong> de su categoría (&quot;{pareja.categoria_nombre}&quot;). Ve a la
+                sección &quot;Sorteo&quot; en el menú para asignarle su posición.
+              </p>
+            </div>
+          )}
           <Info label="Teléfono contacto" value={pareja.telefono_contacto} />
           <Info label="Cuota/jugador" value={`$${pareja.cuota_por_jugador}`} />
           <Info label="Pago" value={pareja.pago_confirmado ? 'Confirmado' : 'Pendiente'} />
@@ -65,7 +74,11 @@ export default async function ParejaDetallePage({ params }: { params: { id: stri
       {/* Partidos */}
       {pareja.partidos.length > 0 && (
         <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 12 }}>Partidos</h2>
+          <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 4 }}>Partidos</h2>
+          <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+            Historial de retos y ascensos de esta pareja. Para capturar un resultado o resolver un partido, ve a la
+            sección &quot;Partidos&quot; del menú.
+          </p>
           <div style={{ overflowX: 'auto' }}>
             <table className="ranking-table" style={{ width: '100%', fontSize: '0.85rem' }}>
               <thead>
@@ -102,7 +115,11 @@ export default async function ParejaDetallePage({ params }: { params: { id: stri
       {/* Movimientos */}
       {pareja.movimientos.length > 0 && (
         <div className="card" style={{ padding: 20 }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 12 }}>Movimientos</h2>
+          <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 4 }}>Movimientos</h2>
+          <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+            Cada vez que esta pareja sube, baja, asciende de categoría o se mueve por otro motivo, queda un
+            registro aquí con su posición antes y después.
+          </p>
           <div style={{ overflowX: 'auto' }}>
             <table className="ranking-table" style={{ width: '100%', fontSize: '0.85rem' }}>
               <thead>

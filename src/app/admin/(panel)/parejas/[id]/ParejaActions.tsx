@@ -90,56 +90,76 @@ export default function ParejaActions({ pareja }: Props) {
 
   return (
     <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-      <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 12 }}>Acciones</h2>
+      <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 4 }}>Acciones</h2>
+      <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+        Lo que hagas aquí afecta directamente el ranking. Lee la descripción de cada botón antes de usarlo.
+      </p>
 
       {error && <p className="form-error" style={{ marginBottom: 12 }}>{error}</p>}
 
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
         {pareja.estado === 'pendiente' && (
           <>
-            <button className="btn btn-primary" onClick={handleAprobar} disabled={isLoading}>
-              {loading?.includes('aprobar') ? 'Aprobando…' : 'Aprobar'}
-            </button>
-            <button
-              className="btn btn-danger"
-              onClick={() => { setShowMotivo('rechazar'); setShowEditar(false); }}
-              disabled={isLoading}
+            <AccionConAyuda
+              ayuda="Confirma la inscripción. La pareja pasa a estar aprobada y, en cuanto se asigne su posición (por sorteo o automáticamente si su categoría ya arrancó), aparece en el ranking público."
             >
-              Rechazar
-            </button>
+              <button className="btn btn-primary" onClick={handleAprobar} disabled={isLoading}>
+                {loading?.includes('aprobar') ? 'Aprobando…' : 'Aprobar'}
+              </button>
+            </AccionConAyuda>
+            <AccionConAyuda ayuda="Rechaza la inscripción (por ejemplo, si no completó su pago). La pareja no entra al ranking.">
+              <button
+                className="btn btn-danger"
+                onClick={() => { setShowMotivo('rechazar'); setShowEditar(false); }}
+                disabled={isLoading}
+              >
+                Rechazar
+              </button>
+            </AccionConAyuda>
           </>
         )}
         {pareja.estado === 'aprobada' && (
+          <AccionConAyuda ayuda="La pareja sale del ranking por su propia decisión o indicación del club. Las posiciones de las demás parejas de su categoría se ajustan automáticamente. Su historial queda guardado y puede volver a inscribirse después.">
+            <button
+              className="btn btn-danger"
+              onClick={() => { setShowMotivo('retirar'); setShowEditar(false); }}
+              disabled={isLoading}
+            >
+              Retirar
+            </button>
+          </AccionConAyuda>
+        )}
+        <AccionConAyuda ayuda="Corrige nombres, teléfonos o género de los jugadores. No cambia su categoría ni su posición en el ranking.">
           <button
-            className="btn btn-danger"
-            onClick={() => { setShowMotivo('retirar'); setShowEditar(false); }}
+            className="btn btn-secondary"
+            onClick={() => { setShowEditar((v) => !v); setShowMotivo(null); }}
             disabled={isLoading}
           >
-            Retirar
+            Editar datos
           </button>
-        )}
-        <button
-          className="btn btn-secondary"
-          onClick={() => { setShowEditar((v) => !v); setShowMotivo(null); }}
-          disabled={isLoading}
-        >
-          Editar datos
-        </button>
-        <button
-          className="btn btn-danger"
-          onClick={() => { setShowMotivo('eliminar'); setShowEditar(false); }}
-          disabled={isLoading}
-        >
-          Eliminar
-        </button>
+        </AccionConAyuda>
+        <AccionConAyuda ayuda="Borra a la pareja por completo, incluyendo su historial. Esta acción no se puede deshacer — úsala solo para inscripciones de prueba o duplicadas por error. Para una pareja real que ya no va a seguir, usa &quot;Retirar&quot; en vez de esto.">
+          <button
+            className="btn btn-danger"
+            onClick={() => { setShowMotivo('eliminar'); setShowEditar(false); }}
+            disabled={isLoading}
+          >
+            Eliminar
+          </button>
+        </AccionConAyuda>
       </div>
 
       {/* Formulario de motivo */}
       {showMotivo && (
         <div style={{ marginBottom: 16, padding: 16, background: 'var(--color-bg-alt)', borderRadius: 8 }}>
-          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: 8, textTransform: 'capitalize' }}>
+          <h3 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: 4, textTransform: 'capitalize' }}>
             {showMotivo} pareja
           </h3>
+          {showMotivo === 'eliminar' && (
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-danger)', marginBottom: 8 }}>
+              Esta acción es permanente: la pareja y su historial se borran por completo y no se pueden recuperar.
+            </p>
+          )}
           <div className="form-group">
             <label className="form-label" htmlFor="motivo">Motivo</label>
             <textarea
@@ -235,6 +255,15 @@ export default function ParejaActions({ pareja }: Props) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function AccionConAyuda({ ayuda, children }: { ayuda: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div>{children}</div>
+      <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', marginTop: 4, maxWidth: 520 }}>{ayuda}</p>
     </div>
   );
 }

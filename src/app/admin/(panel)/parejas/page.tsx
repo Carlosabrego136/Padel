@@ -29,7 +29,11 @@ export default async function ParejasPage({
 
   return (
     <div>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 16 }}>Parejas</h1>
+      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: 8 }}>Parejas</h1>
+      <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 20 }}>
+        Aquí ves todas las parejas inscritas. Toca una pareja para ver su detalle, aprobarla, rechazarla o editar sus
+        datos. Las parejas &quot;pendientes&quot; aún no aparecen en el ranking público hasta que las apruebes.
+      </p>
 
       {/* Filtros */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>

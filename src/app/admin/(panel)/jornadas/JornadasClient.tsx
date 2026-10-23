@@ -39,6 +39,11 @@ export default function JornadasClient({ jornadas: init }: { jornadas: JornadaRo
     <div>
       {message && <div className={`toast ${message.ok ? 'toast-success' : 'toast-error'}`} style={{ marginBottom: 16 }}>{message.text}</div>}
 
+      <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+        <strong>Programada</strong>: semana en curso, aún se pueden jugar partidos · <strong>Cerrada</strong>: ya se
+        procesó y el ranking quedó actualizado.
+      </p>
+
       <div style={{ overflowX: 'auto' }}>
         <table className="ranking-table" style={{ width: '100%' }}>
           <thead>
