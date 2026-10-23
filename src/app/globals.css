@@ -606,15 +606,9 @@ html[data-intro="done"] .hero__cta {
   box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
 }
 
+/* Sin filtro de color encima: la foto se ve en sus colores originales. */
 .about__media-overlay {
-  position: absolute;
-  inset: 0;
-  background: var(--color-accent);
-  mix-blend-mode: hue;
-  opacity: 0.6;
-  pointer-events: none;
-  z-index: 1;
-  border-radius: var(--radius-lg);
+  display: none;
 }
 
 @media (max-width: 700px) {
