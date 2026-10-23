@@ -161,14 +161,14 @@ button, input, select, textarea {
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  /* Panel claro del lado del texto, ya NO sólido: deja ver al jugador de la foto por detrás
-     sin perder la legibilidad del texto encima. */
+  /* Panel casi transparente: se ve bien claro al jugador de la foto por detrás; el texto
+     se mantiene legible gracias a su propia sombra (ver .hero__title / .hero__subtitle). */
   background: linear-gradient(
     90deg,
-    rgba(242, 241, 240, 0.86) 0%,
-    rgba(242, 241, 240, 0.86) 50%,
-    rgba(242, 241, 240, 0.55) 72%,
-    rgba(242, 241, 240, 0.08) 100%
+    rgba(242, 241, 240, 0.26) 0%,
+    rgba(242, 241, 240, 0.26) 50%,
+    rgba(242, 241, 240, 0.12) 72%,
+    rgba(242, 241, 240, 0) 100%
   );
 }
 
@@ -256,6 +256,7 @@ button, input, select, textarea {
 .hero__title {
   font-size: min(clamp(34px, 7.6vw, 80px), 9.2vh);
   font-weight: 700;
+  text-shadow: 0 2px 18px rgba(255, 255, 255, 0.55), 0 1px 3px rgba(255, 255, 255, 0.4);
 }
 
 .hero__title span { display: block; }
@@ -273,6 +274,7 @@ button, input, select, textarea {
   letter-spacing: normal;
   max-width: 520px;
   margin-top: calc(var(--u) * 3);
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.6);
 }
 
 .hero__cta,
@@ -411,14 +413,18 @@ html[data-intro="done"] .hero__cta {
   .hero__nav-logo img {
     height: clamp(96px, 24vw, 136px);
   }
-  /* El menú (Ranking / Reglamento / Inscripción) siempre visible, centrado, sin depender del botón hamburguesa,
-     en "píldoras" de vidrio esmerilado para que las letras resalten sobre el video. */
+  /* El menú (Ranking / Reglamento / Inscripción) siempre visible, sin depender del botón
+     hamburguesa, en una sola fila compacta pegada al logo para que no tape la cara del
+     jugador de la foto. */
   .hero__nav-mobile {
     display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    gap: 10px;
-    margin-top: 2px;
+    gap: 8px;
+    margin-top: 0;
   }
   .hero__nav-mobile a {
     color: #fff;
@@ -427,7 +433,8 @@ html[data-intro="done"] .hero__cta {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-radius: 999px;
-    padding: 10px 22px;
+    padding: 8px 16px;
+    font-size: 0.78rem;
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
   }
   .hero__content {
