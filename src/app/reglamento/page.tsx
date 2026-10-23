@@ -19,6 +19,15 @@ function fmtFecha(iso: string | undefined): string {
   return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
 
+/** Día siguiente a una fecha ISO (YYYY-MM-DD), ya formateado para mostrar. */
+function fmtDiaSiguiente(iso: string | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00Z');
+  if (isNaN(d.getTime())) return '';
+  d.setUTCDate(d.getUTCDate() + 1);
+  return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+}
+
 interface Regla {
   num: number;
   titulo: string;
@@ -31,6 +40,7 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
   const limite = fmtFecha(cfg.get('fecha_limite_inscripcion'));
   const pausaInicio = fmtFecha(cfg.get('pausa_inicio'));
   const pausaFin = fmtFecha(cfg.get('pausa_fin'));
+  const reanudacion = fmtDiaSiguiente(cfg.get('pausa_fin'));
   const cuotaInicial = cfg.get('cuota_inicial') ?? '200';
   const cuotaTardia = cfg.get('cuota_tardia') ?? '300';
 
@@ -95,9 +105,10 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
           <div className="rule-card__sub">
             <p className="rule-card__sub-title">2.3 Salida y reingreso al ranking</p>
             <p>
-              Si una pareja deja de jugar y más adelante quiere regresar, reingresa en el{' '}
-              <strong>último lugar de su categoría</strong>, sin conservar su posición anterior, vuelve a pagar su
-              inscripción vigente y tiene que ganarse de nuevo su lugar jugando.
+              Una pareja puede retirarse del ranking en cualquier momento; las posiciones de su categoría se
+              ajustan automáticamente y el retiro queda registrado en el historial. Si más adelante quiere
+              regresar, reingresa en el <strong>último lugar de su categoría</strong>, sin conservar su posición
+              anterior, vuelve a pagar su inscripción vigente y tiene que ganarse de nuevo su lugar jugando.
             </p>
           </div>
           <div className="rule-card__sub">
@@ -214,6 +225,7 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
               <p>
                 El ranking tendrá una pausa del <strong>{pausaInicio}</strong> al <strong>{pausaFin}</strong>,
                 inclusive. Durante estas fechas no hay jornadas ni descensos por inactividad.
+                {reanudacion && <> Las actividades se reanudan el <strong>{reanudacion}</strong>.</>}
               </p>
             </div>
           )}
