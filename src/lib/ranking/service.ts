@@ -80,6 +80,14 @@ export async function registrarPareja(
 
   const actor: Actor = { id: null, label: 'publico', ip };
 
+  // Claves canónicas de los dos jugadores, calculadas ANTES de crear la pareja: se necesitan
+  // para revisar si son los campeones de la temporada anterior (premio: inscripción gratis).
+  const clave1 = claveJugador(data.jugador1.nombre);
+  const clave2 = claveJugador(data.jugador2.nombre);
+  if (clave1.length < 3) throw badRequest('El nombre de jugador 1 es demasiado corto');
+  if (clave2.length < 3) throw badRequest('El nombre de jugador 2 es demasiado corto');
+  const [claveMenor, claveMayor] = clave1 < clave2 ? [clave1, clave2] : [clave2, clave1];
+
   return withTx(actor, async (tx) => {
     // Categoría existe
     const catR = await tx.query<{ id: number }>(
@@ -89,24 +97,40 @@ export async function registrarPareja(
     if (!catR.rows[0]) throw badRequest('Categoría no válida');
     const categoriaId = catR.rows[0].id;
 
-    // Calcular cuota
-    const cfg = await configVals(tx, ['fecha_limite_inscripcion', 'cuota_inicial', 'cuota_tardia']);
-    const limite = cfg.get('fecha_limite_inscripcion') ?? '2099-12-31';
-    const hoy = new Date().toISOString().slice(0, 10);
-    const cuota = hoy <= limite
-      ? parseInt(cfg.get('cuota_inicial') ?? '200', 10)
-      : parseInt(cfg.get('cuota_tardia') ?? '300', 10);
+    // Premio al campeón: si estos mismos dos jugadores están registrados como campeones de la
+    // temporada anterior y aún no han usado el premio, esta inscripción es gratis.
+    const campeonR = await tx.query<{ id: string }>(
+      `SELECT id FROM campeones_temporada
+       WHERE jugador1_clave = $1 AND jugador2_clave = $2 AND NOT usado
+       ORDER BY creado_en LIMIT 1 FOR UPDATE`,
+      [claveMenor, claveMayor],
+    );
+    const campeonId = campeonR.rows[0]?.id ?? null;
+
+    // Calcular cuota (0 si aplica el premio al campeón)
+    let cuota: number;
+    if (campeonId) {
+      cuota = 0;
+    } else {
+      const cfg = await configVals(tx, ['fecha_limite_inscripcion', 'cuota_inicial', 'cuota_tardia']);
+      const limite = cfg.get('fecha_limite_inscripcion') ?? '2099-12-31';
+      const hoy = new Date().toISOString().slice(0, 10);
+      cuota = hoy <= limite
+        ? parseInt(cfg.get('cuota_inicial') ?? '200', 10)
+        : parseInt(cfg.get('cuota_tardia') ?? '300', 10);
+    }
 
     // Crear pareja
     const parejaR = await tx.query<{ id: string }>(
-      `INSERT INTO parejas (categoria_id, telefono_contacto, acepta_publicar, mixta, cuota_por_jugador)
-       VALUES ($1, $2, true, $3, $4)
+      `INSERT INTO parejas (categoria_id, telefono_contacto, acepta_publicar, mixta, cuota_por_jugador, premio_campeon)
+       VALUES ($1, $2, true, $3, $4, $5)
        RETURNING id`,
       [
         categoriaId,
         data.telefonoContacto,
         data.jugador1.genero !== data.jugador2.genero,
         cuota,
+        campeonId !== null,
       ],
     );
     const parejaId = parejaR.rows[0].id;
@@ -115,10 +139,8 @@ export async function registrarPareja(
     const insertJugador = async (
       j: { nombre: string; genero: string; telefono?: string },
       foto: Awaited<ReturnType<typeof procesarFoto>>,
-      etiqueta: string,
+      clave: string,
     ): Promise<string> => {
-      const clave = claveJugador(j.nombre);
-      if (clave.length < 3) throw badRequest(`El nombre de ${etiqueta} es demasiado corto`);
       try {
         const r = await tx.query<{ id: string }>(
           `INSERT INTO jugadores (pareja_id, nombre, clave, genero, telefono, foto, foto_mime)
@@ -144,8 +166,15 @@ export async function registrarPareja(
       }
     };
 
-    const jugador1Id = await insertJugador(data.jugador1, fotoProc1, 'jugador 1');
-    const jugador2Id = await insertJugador(data.jugador2, fotoProc2, 'jugador 2');
+    const jugador1Id = await insertJugador(data.jugador1, fotoProc1, clave1);
+    const jugador2Id = await insertJugador(data.jugador2, fotoProc2, clave2);
+
+    if (campeonId) {
+      await tx.query(
+        `UPDATE campeones_temporada SET usado = true, usado_en = now(), pareja_nueva_id = $2 WHERE id = $1`,
+        [campeonId, parejaId],
+      );
+    }
 
     await tx.audit({
       accion: 'inscripcion',
@@ -157,6 +186,7 @@ export async function registrarPareja(
         jugador1: data.jugador1.nombre,
         jugador2: data.jugador2.nombre,
         cuota,
+        premio_campeon: campeonId !== null,
       },
     });
 
@@ -1029,6 +1059,149 @@ export async function actualizarConfig(clave: string, valor: string, actor: Acto
       antes: { valor: antes },
       despues: { valor },
       detalle: def.etiqueta,
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Premio al campeón
+// ---------------------------------------------------------------------------
+
+/** Ordena dos jugadores (clave + nombre) para que siempre se guarden en el mismo orden. */
+function ordenarPareja(
+  a: { clave: string; nombre: string },
+  b: { clave: string; nombre: string },
+): [{ clave: string; nombre: string }, { clave: string; nombre: string }] {
+  return a.clave < b.clave ? [a, b] : [b, a];
+}
+
+/**
+ * Toma la pareja en 1er lugar de cada categoría en este momento y la registra como campeona
+ * de la temporada actual (inicio_ranking se usa como identificador de temporada). No cobra
+ * nada ni mueve posiciones: solo guarda el registro para que, cuando esos mismos dos jugadores
+ * se vuelvan a inscribir, la inscripción pública les salga gratis automáticamente.
+ */
+export async function registrarCampeonesTemporada(
+  actor: Actor,
+): Promise<{ registrados: number; detalle: { categoria: string; jugador1: string; jugador2: string }[] }> {
+  return withAdminTx(actor, async (tx) => {
+    const temporada = await configVal(tx, 'inicio_ranking');
+
+    const categoriasR = await tx.query<{ id: number; nombre: string }>(
+      `SELECT id, nombre FROM categorias ORDER BY orden`,
+    );
+
+    const detalle: { categoria: string; jugador1: string; jugador2: string }[] = [];
+    let registrados = 0;
+    let iter = 0;
+
+    for (const cat of categoriasR.rows) {
+      iter++;
+      if (iter > 20) throw new Error('Demasiadas categorías');
+
+      const parejaR = await tx.query<{ id: string }>(
+        `SELECT id FROM parejas WHERE categoria_id = $1 AND estado = 'aprobada' AND posicion = 1`,
+        [cat.id],
+      );
+      const parejaId = parejaR.rows[0]?.id;
+      if (!parejaId) continue;
+
+      const jugR = await tx.query<{ nombre: string; clave: string }>(
+        `SELECT nombre, clave FROM jugadores WHERE pareja_id = $1 AND activo ORDER BY creado_en`,
+        [parejaId],
+      );
+      if (jugR.rows.length !== 2) continue;
+
+      const [menor, mayor] = ordenarPareja(jugR.rows[0], jugR.rows[1]);
+
+      try {
+        await tx.query(
+          `INSERT INTO campeones_temporada
+             (categoria_id, pareja_id, jugador1_clave, jugador2_clave, jugador1_nombre, jugador2_nombre, temporada)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [cat.id, parejaId, menor.clave, mayor.clave, menor.nombre, mayor.nombre, temporada],
+        );
+        registrados++;
+        detalle.push({ categoria: cat.nombre, jugador1: menor.nombre, jugador2: mayor.nombre });
+      } catch (err) {
+        const code = (err as { code?: string })?.code;
+        if (code === '23505') continue; // ya estaba registrado para esta temporada: no es error
+        throw err;
+      }
+    }
+
+    await tx.audit({
+      accion: 'registrar_campeones_temporada',
+      entidad: 'campeones_temporada',
+      despues: { temporada, registrados, detalle },
+    });
+
+    return { registrados, detalle };
+  });
+}
+
+/** Agrega manualmente un registro de campeón (para corregir un caso especial o un olvido). */
+export async function agregarCampeonManual(
+  data: { categoriaId: number; jugador1: string; jugador2: string },
+  actor: Actor,
+): Promise<void> {
+  if (!Number.isInteger(data.categoriaId) || data.categoriaId < 1 || data.categoriaId > 6) {
+    throw badRequest('Categoría no válida');
+  }
+  const clave1 = claveJugador(data.jugador1);
+  const clave2 = claveJugador(data.jugador2);
+  if (clave1.length < 3 || clave2.length < 3) throw badRequest('Escribe el nombre completo de ambos jugadores');
+  if (clave1 === clave2) throw badRequest('Los dos jugadores deben ser personas distintas');
+
+  const [menor, mayor] = ordenarPareja(
+    { clave: clave1, nombre: limpiarTexto(data.jugador1) },
+    { clave: clave2, nombre: limpiarTexto(data.jugador2) },
+  );
+
+  await withAdminTx(actor, async (tx) => {
+    const temporada = await configVal(tx, 'inicio_ranking');
+    const catR = await tx.query<{ nombre: string }>('SELECT nombre FROM categorias WHERE id = $1', [data.categoriaId]);
+    if (!catR.rows[0]) throw badRequest('Categoría no válida');
+
+    try {
+      const r = await tx.query<{ id: string }>(
+        `INSERT INTO campeones_temporada (categoria_id, jugador1_clave, jugador2_clave, jugador1_nombre, jugador2_nombre, temporada)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id`,
+        [data.categoriaId, menor.clave, mayor.clave, menor.nombre, mayor.nombre, temporada],
+      );
+
+      await tx.audit({
+        accion: 'agregar_campeon_manual',
+        entidad: 'campeones_temporada',
+        entidadId: r.rows[0].id,
+        despues: { categoria: catR.rows[0].nombre, jugador1: menor.nombre, jugador2: mayor.nombre, temporada },
+      });
+    } catch (err) {
+      const code = (err as { code?: string })?.code;
+      if (code === '23505') throw conflict('Ya existe un registro de campeón con esos dos jugadores para esta temporada');
+      throw err;
+    }
+  });
+}
+
+/** Elimina un registro de campeón (manual o automático) que ya no debe aplicar. */
+export async function eliminarCampeon(id: string, actor: Actor): Promise<void> {
+  validarUuid(id, 'registro de campeón');
+
+  await withAdminTx(actor, async (tx) => {
+    const r = await tx.query<{
+      id: string; jugador1_nombre: string; jugador2_nombre: string; usado: boolean;
+    }>('SELECT id, jugador1_nombre, jugador2_nombre, usado FROM campeones_temporada WHERE id = $1 FOR UPDATE', [id]);
+    if (!r.rows[0]) throw notFound('Registro no encontrado');
+
+    await tx.query('DELETE FROM campeones_temporada WHERE id = $1', [id]);
+
+    await tx.audit({
+      accion: 'eliminar_campeon',
+      entidad: 'campeones_temporada',
+      entidadId: id,
+      antes: { jugador1: r.rows[0].jugador1_nombre, jugador2: r.rows[0].jugador2_nombre, usado: r.rows[0].usado },
     });
   });
 }

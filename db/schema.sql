@@ -72,6 +72,11 @@ CREATE TABLE IF NOT EXISTS parejas (
 );
 CREATE INDEX IF NOT EXISTS parejas_estado_cat ON parejas (estado, categoria_id);
 
+-- "Premio al campeón": la pareja que ganó su categoría no paga inscripción en el siguiente
+-- ranking, SOLO si se vuelve a inscribir con exactamente los mismos dos jugadores. El registro
+-- de quién es campeón vive en campeones_temporada (ver más abajo).
+ALTER TABLE parejas ADD COLUMN IF NOT EXISTS premio_campeon boolean NOT NULL DEFAULT false;
+
 CREATE TABLE IF NOT EXISTS jugadores (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   pareja_id  uuid NOT NULL REFERENCES parejas(id) ON DELETE CASCADE,
@@ -87,6 +92,30 @@ CREATE TABLE IF NOT EXISTS jugadores (
 -- Un jugador solo puede estar en una pareja activa (regla 1.1 del reglamento).
 CREATE UNIQUE INDEX IF NOT EXISTS jugadores_clave_activa ON jugadores (clave) WHERE activo;
 CREATE INDEX IF NOT EXISTS jugadores_pareja ON jugadores (pareja_id);
+
+-- ---------- Premio al campeón -------------------------------------------------
+-- Guarda qué pareja (por los dos jugadores, no por el id de la pareja que puede desaparecer
+-- con el tiempo) quedó en 1er lugar de cada categoría. jugador1_clave siempre es la menor
+-- alfabéticamente de las dos (orden canónico), así la búsqueda al inscribirse no depende de
+-- en qué orden se escriban los nombres. "usado" se marca true en cuanto esa misma pareja se
+-- vuelve a inscribir gratis; a partir de ahí el registro ya no vuelve a aplicar.
+CREATE TABLE IF NOT EXISTS campeones_temporada (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  categoria_id    smallint NOT NULL REFERENCES categorias(id),
+  pareja_id       uuid REFERENCES parejas(id) ON DELETE SET NULL,
+  jugador1_clave  text NOT NULL CHECK (char_length(jugador1_clave) BETWEEN 3 AND 80),
+  jugador2_clave  text NOT NULL CHECK (char_length(jugador2_clave) BETWEEN 3 AND 80),
+  jugador1_nombre text NOT NULL,
+  jugador2_nombre text NOT NULL,
+  temporada       text NOT NULL,
+  usado           boolean NOT NULL DEFAULT false,
+  usado_en        timestamptz,
+  pareja_nueva_id uuid REFERENCES parejas(id),
+  creado_en       timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT campeones_jugadores_distintos CHECK (jugador1_clave <> jugador2_clave),
+  CONSTRAINT campeones_unico UNIQUE (categoria_id, temporada, jugador1_clave, jugador2_clave)
+);
+CREATE INDEX IF NOT EXISTS campeones_pendientes ON campeones_temporada (jugador1_clave, jugador2_clave) WHERE NOT usado;
 
 -- ---------- Jornadas (semanas martes → lunes 13:00) --------------------------
 CREATE TABLE IF NOT EXISTS jornadas (
@@ -258,7 +287,7 @@ CREATE TRIGGER audit_cambios_inmutable BEFORE UPDATE OR DELETE ON audit_cambios
 DO $$
 DECLARE t text;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['parejas','jugadores','partidos','configuracion','jornadas','categorias','admins']
+  FOREACH t IN ARRAY ARRAY['parejas','jugadores','partidos','configuracion','jornadas','categorias','admins','campeones_temporada']
   LOOP
     EXECUTE format('DROP TRIGGER IF EXISTS audit_%1$s ON %1$s', t);
     EXECUTE format('CREATE TRIGGER audit_%1$s BEFORE UPDATE OR DELETE ON %1$s FOR EACH ROW EXECUTE FUNCTION audit_trigger()', t);

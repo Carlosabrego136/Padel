@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/admin/sorteo', label: 'Sorteo', icon: '🎲' },
   { href: '/admin/partidos', label: 'Partidos', icon: '🏸' },
   { href: '/admin/jornadas', label: 'Jornadas', icon: '📅' },
+  { href: '/admin/campeones', label: 'Premio al campeón', icon: '🏆' },
   { href: '/admin/auditoria', label: 'Auditoría', icon: '📋' },
   { href: '/admin/config', label: 'Configuración', icon: '⚙️' },
 ];

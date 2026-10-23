@@ -111,6 +111,18 @@ export const editarParejaSchema = z
 
 export const sorteoSchema = z.object({ categoriaId: z.number().int().min(1).max(6) });
 
+export const campeonManualSchema = z
+  .object({
+    categoriaId: z.number().int().min(1).max(6),
+    jugador1: nombreSchema,
+    jugador2: nombreSchema,
+  })
+  .superRefine((v, ctx) => {
+    if (claveJugador(v.jugador1) === claveJugador(v.jugador2)) {
+      ctx.addIssue({ code: 'custom', path: ['jugador2'], message: 'Los dos jugadores deben ser personas distintas' });
+    }
+  });
+
 const fechaHoraLocalSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Fecha y hora no válidas')

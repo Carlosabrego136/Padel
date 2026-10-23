@@ -203,6 +203,19 @@ export interface AdminRow {
   ultimo_acceso: string | null;
 }
 
+export interface CampeonRow {
+  id: string;
+  categoria_id: number;
+  categoria_nombre: string;
+  pareja_id: string | null;
+  jugador1_nombre: string;
+  jugador2_nombre: string;
+  temporada: string;
+  usado: boolean;
+  usado_en: string | null;
+  creado_en: string;
+}
+
 // ============================================================================
 // Funciones auxiliares para agrupar jugadores
 // ============================================================================
@@ -597,6 +610,18 @@ export async function adminGetAdmins(): Promise<AdminRow[]> {
   const r = await query<AdminRow>(
     `SELECT id, email, nombre, activo, creado_en, ultimo_acceso
      FROM admins ORDER BY creado_en`,
+  );
+  return r.rows;
+}
+
+export async function adminGetCampeones(): Promise<CampeonRow[]> {
+  const r = await query<CampeonRow>(
+    `SELECT ct.id, ct.categoria_id, c.nombre AS categoria_nombre, ct.pareja_id,
+            ct.jugador1_nombre, ct.jugador2_nombre, ct.temporada, ct.usado, ct.usado_en, ct.creado_en
+     FROM campeones_temporada ct
+     JOIN categorias c ON c.id = ct.categoria_id
+     ORDER BY ct.creado_en DESC
+     LIMIT 300`,
   );
   return r.rows;
 }
