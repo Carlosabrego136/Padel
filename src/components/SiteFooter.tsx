@@ -60,9 +60,26 @@ const REDES = [
   },
 ];
 
+const FOOTER_VIDEO_SRC =
+  'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260912_104303_0c6d60b2-9353-408e-9449-585108a22fb5.mp4';
+const FOOTER_VIDEO_POSTER =
+  'https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/130837c4-0244-4f37-9c61-8d801d93fd29.jpg';
+
 export default function SiteFooter() {
   return (
     <footer className="site-footer">
+      <video
+        className="site-footer__video"
+        src={FOOTER_VIDEO_SRC}
+        poster={FOOTER_VIDEO_POSTER}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+      />
+      <div className="site-footer__video-overlay" aria-hidden="true" />
       <div className="container site-footer__inner">
         <div className="site-footer__brand">
           <Image

@@ -143,12 +143,17 @@ button, input, select, textarea {
 
 .hero__video {
   position: absolute;
-  top: 0;
-  right: -20%;
-  width: 99%;
-  height: auto;
-  max-width: none;
-  object-fit: contain;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Se muestra la foto horizontal en computadora, la vertical en celular (ver media query abajo). */
+.hero__video--mobile { display: none; }
+.hero__video--desktop {
+  display: block;
+  object-position: center 28%;
 }
 
 .hero__overlay {
@@ -156,12 +161,14 @@ button, input, select, textarea {
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  /* Panel claro del lado del texto, ya NO sólido: deja ver al jugador de la foto por detrás
+     sin perder la legibilidad del texto encima. */
   background: linear-gradient(
     90deg,
-    var(--color-bg) 0%,
-    var(--color-bg) 55%,
-    rgba(242, 241, 240, 0.85) 78%,
-    rgba(242, 241, 240, 0) 100%
+    rgba(242, 241, 240, 0.86) 0%,
+    rgba(242, 241, 240, 0.86) 50%,
+    rgba(242, 241, 240, 0.55) 72%,
+    rgba(242, 241, 240, 0.08) 100%
   );
 }
 
@@ -359,16 +366,14 @@ html[data-intro="done"] .hero__cta {
 
 /* ----- Mobile hero ----- */
 @media (max-width: 700px) {
-  .hero__video {
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  /* En celular se muestra la foto vertical en vez de la horizontal. */
+  .hero__video--mobile {
+    display: block;
+    object-position: center 18%;
   }
-  /* Velo ligero (no sólido) para que el video se vea claro y, al mismo tiempo, el texto
-     siempre resalte encima, sin importar qué tan brillante sea esa parte del video. */
+  .hero__video--desktop { display: none; }
+  /* Velo ligero (no sólido) para que la foto se vea clara y, al mismo tiempo, el texto
+     siempre resalte encima, sin importar qué tan clara sea esa parte de la foto. */
   .hero__overlay {
     display: block;
     background:
@@ -1215,12 +1220,37 @@ html[data-intro="done"] .hero__cta {
 
 /* ---------- Site footer ---------- */
 .site-footer {
+  position: relative;
+  overflow: hidden;
   background: #1a1c1e;
   color: #e8e8e8;
   margin-top: 0;
 }
 
+.site-footer__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Capa oscura fuerte: el video se ve de fondo, pero nada del contenido (logo, texto, redes
+   sociales) se pierde — queda tan legible como antes, con el video solo de fondo/ambiente. */
+.site-footer__video-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 12, 14, 0.88) 0%, rgba(10, 12, 14, 0.93) 100%);
+}
+
 .site-footer__inner {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: 1.3fr 1fr 1fr;
   gap: 32px;
@@ -1317,6 +1347,8 @@ html[data-intro="done"] .hero__cta {
 }
 
 .site-footer__bottom {
+  position: relative;
+  z-index: 2;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 18px 16px;
 }
