@@ -23,6 +23,11 @@ const TRANSIENT_CODES = new Set([
 ]);
 const TX_RETRY_CODES = new Set(['40001', '40P01']);
 
+// Servidor Postgres sin conexiones disponibles (53300): el servidor es compartido con otros
+// proyectos y se llena de vez en cuando. Reintentos acotados con espera creciente + un poco de
+// azar, para no insistir todos los clientes exactamente al mismo tiempo.
+const BUSY_RETRY_DELAYS_MS = [300, 700, 1300];
+
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 const codeOf = (err: unknown): string | undefined => (err as { code?: string } | null)?.code;
 const isTransient = (err: unknown) => {
@@ -51,9 +56,12 @@ function buildConfig(): PoolConfig {
   return {
     connectionString: url.toString(),
     ssl,
-    max: 4,
-    idleTimeoutMillis: 10_000,
-    connectionTimeoutMillis: 8_000,
+    // Límite de conexiones: el servidor Postgres (Aiven) es compartido con otros proyectos
+    // y solo admite 20 conexiones en total. Con max:1 esta app nunca acapara más de una.
+    max: 1,
+    idleTimeoutMillis: 2_000,
+    allowExitOnIdle: true,
+    connectionTimeoutMillis: 12_000,
     statement_timeout: 12_000,
     query_timeout: 15_000,
     idle_in_transaction_session_timeout: 20_000,
@@ -87,6 +95,14 @@ export async function query<R extends QueryResultRow = any>(
     try {
       return await getPool().query<R>(text, params as any[]);
     } catch (err) {
+      const code = codeOf(err);
+      // Caso específico: servidor sin conexiones disponibles. Reintenta hasta 3 veces con
+      // espera fija creciente (300/700/1300 ms) + azar, sin importar opts.maxRetries.
+      if (code === '53300' && attempt < BUSY_RETRY_DELAYS_MS.length) {
+        log.warn('db_query_reintento_ocupado', { intento: attempt + 1, error: serializeError(err) });
+        await sleep(BUSY_RETRY_DELAYS_MS[attempt] + Math.floor(Math.random() * 200));
+        continue;
+      }
       if (attempt < maxRetries && isTransient(err)) {
         log.warn('db_query_reintento', { intento: attempt + 1, error: serializeError(err) });
         await sleep(150 * 2 ** attempt);

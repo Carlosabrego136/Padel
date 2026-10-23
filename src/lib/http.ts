@@ -67,7 +67,7 @@ export function errorResponse(err: unknown): NextResponse {
   if (code === '23505') return json({ error: 'Ese registro ya existe o entra en conflicto con otro.', code: 'duplicate' }, 409);
   if (code === '23503') return json({ error: 'No se puede completar: hay datos relacionados.', code: 'related' }, 409);
   if (code === '23514') return json({ error: 'Los datos no cumplen las reglas del sistema.', code: 'check' }, 400);
-  if (code === '40001' || code === '40P01' || code === '55P03') {
+  if (code === '40001' || code === '40P01' || code === '55P03' || code === '53300') {
     return json({ error: 'El sistema está ocupado. Inténtalo de nuevo en unos segundos.', code: 'busy' }, 503);
   }
   log.error('error_no_controlado', { error: serializeError(err) });
