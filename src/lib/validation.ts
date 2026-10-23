@@ -210,6 +210,18 @@ export const CONFIG_DEFS: Record<string, ConfigDef> = {
       }
     },
   },
+  club_easycancha: {
+    etiqueta: 'Enlace de EasyCancha (reservación de canchas)',
+    ayuda: 'Se muestra como botón de reserva en la página principal.',
+    validar: (v) => {
+      try {
+        const u = new URL(v);
+        return u.protocol === 'https:' ? null : 'Debe empezar con https://';
+      } catch {
+        return 'URL no válida';
+      }
+    },
+  },
 };
 
 export const configSchema = z.object({

@@ -10,7 +10,11 @@ export default async function HomePage() {
   const config = await getConfig().catch(() => new Map<string, string>());
   const telefono = config.get('club_telefono') ?? '';
   const direccion = config.get('club_direccion') ?? '';
+  const easycancha = config.get('club_easycancha') ?? '';
   const telefonoLink = telefono ? `https://wa.me/52${telefono}` : '';
+  const reservaWhatsappLink = telefono
+    ? `https://wa.me/52${telefono}?text=${encodeURIComponent('Hola, quisiera reservar una cancha en Pádel Life. ¿Qué horarios tienen disponibles?')}`
+    : '';
 
   return (
     <>
@@ -74,6 +78,54 @@ export default async function HomePage() {
                 </div>
               </a>
             )}
+          </div>
+        </section>
+      )}
+
+      {/* Reserva de cancha — WhatsApp y EasyCancha, botones destacados */}
+      {(reservaWhatsappLink || easycancha) && (
+        <section className="reserva-strip">
+          <div className="container reserva-strip__inner">
+            <div className="reserva-strip__text">
+              <h2 className="reserva-strip__title">Reserva tu cancha</h2>
+              <p className="reserva-strip__subtitle">
+                Agenda tu horario de juego de forma rápida y sencilla, directamente por WhatsApp o a través de
+                nuestra aplicación de reservaciones.
+              </p>
+            </div>
+            <div className="reserva-strip__actions">
+              {reservaWhatsappLink && (
+                <a
+                  href={reservaWhatsappLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-chamfer reserva-strip__btn reserva-strip__btn--whatsapp"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path
+                      d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2Z"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                  </svg>
+                  Reservar por WhatsApp
+                </a>
+              )}
+              {easycancha && (
+                <a
+                  href={easycancha}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-chamfer reserva-strip__btn reserva-strip__btn--app"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <rect x="4" y="2" width="16" height="20" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
+                    <line x1="9" y1="19" x2="15" y2="19" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  </svg>
+                  Reservar en EasyCancha
+                </a>
+              )}
+            </div>
           </div>
         </section>
       )}

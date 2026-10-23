@@ -22,7 +22,8 @@ INSERT INTO configuracion (clave, valor) VALUES
   ('eximir_primer_lugar',     'true'),               -- el 1er lugar no baja por inactividad (no puede retar hacia arriba)
   ('num_canchas',             '6'),
   ('club_telefono',           '3112556229'),
-  ('club_direccion',          'Pendiente de confirmar — edítala en Configuración'),
+  ('club_direccion',          'Roble 911, Rincón de San Juan, Tepic, Nayarit'),
+  ('club_easycancha',         'https://www.easycancha.com/login?refresh=1'),
   ('club_instagram',          'padel.lifetpc'),
   ('club_facebook',           'Pádel Life Tepic'),
   ('club_sitio',              'https://padellife.mx')

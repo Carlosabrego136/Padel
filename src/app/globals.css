@@ -1669,3 +1669,99 @@ html[data-intro="done"] .hero__cta {
     gap: 16px;
   }
 }
+
+/* ---------- Franja "Reserva tu cancha" (home) ---------- */
+.reserva-strip {
+  background: linear-gradient(135deg, #0b1518 0%, #0f2228 55%, #0a1a1e 100%);
+  border-bottom: 3px solid var(--color-accent);
+  position: relative;
+  overflow: hidden;
+}
+
+.reserva-strip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 85% 20%, rgba(21, 188, 223, 0.18), transparent 60%);
+  pointer-events: none;
+}
+
+.reserva-strip__inner {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 48px 16px;
+}
+
+.reserva-strip__text {
+  max-width: 480px;
+}
+
+.reserva-strip__title {
+  font-family: var(--font-display, inherit);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 10px;
+}
+
+.reserva-strip__subtitle {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.98rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.reserva-strip__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.reserva-strip__btn {
+  gap: 10px;
+}
+
+.reserva-strip__btn svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.reserva-strip__btn--whatsapp {
+  background: #1fb35a;
+  border-color: #17a04e;
+  box-shadow: 0 0 0 1px rgba(31, 179, 90, 0.35), 0 10px 30px -12px rgba(23, 160, 78, 0.6);
+}
+
+.reserva-strip__btn--whatsapp:hover {
+  background: #17a04e;
+  box-shadow: 0 0 0 1px rgba(31, 179, 90, 0.5), 0 14px 36px -10px rgba(23, 160, 78, 0.7);
+}
+
+.reserva-strip__btn--app {
+  background: var(--color-accent);
+  border-color: var(--color-accent-border);
+}
+
+@media (max-width: 699px) {
+  .reserva-strip__inner {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .reserva-strip__actions {
+    width: 100%;
+  }
+
+  .reserva-strip__btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
