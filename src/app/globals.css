@@ -365,7 +365,14 @@ html[data-intro="done"] .hero__cta {
     right: auto;
     width: 119%;
   }
-  .hero__overlay { display: none; }
+  /* Velo ligero (no sólido) para que el video se vea claro y, al mismo tiempo, el texto
+     siempre resalte encima, sin importar qué tan brillante sea esa parte del video. */
+  .hero__overlay {
+    display: block;
+    background:
+      radial-gradient(120% 55% at 50% 30%, rgba(6, 10, 18, 0.32) 0%, rgba(6, 10, 18, 0.12) 55%, rgba(6, 10, 18, 0) 100%),
+      linear-gradient(180deg, rgba(6, 10, 18, 0.22) 0%, rgba(6, 10, 18, 0.05) 30%, rgba(6, 10, 18, 0.05) 60%, rgba(6, 10, 18, 0.30) 100%);
+  }
   .hero__nav-links,
   .hero__nav-cta { display: none; }
   /* El menú ya queda visible sin picar nada (más abajo), así que la hamburguesa ya no se necesita. */
@@ -391,18 +398,40 @@ html[data-intro="done"] .hero__cta {
   .hero__nav-logo img {
     height: clamp(96px, 24vw, 136px);
   }
-  /* El menú (Ranking / Reglamento / Inscripción) siempre visible, centrado, sin depender del botón hamburguesa. */
+  /* El menú (Ranking / Reglamento / Inscripción) siempre visible, centrado, sin depender del botón hamburguesa,
+     en "píldoras" de vidrio esmerilado para que las letras resalten sobre el video. */
   .hero__nav-mobile {
     display: flex;
     align-items: center;
     text-align: center;
+    gap: 10px;
+    margin-top: 2px;
+  }
+  .hero__nav-mobile a {
+    color: #fff;
+    background: rgba(6, 10, 18, 0.34);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 999px;
+    padding: 10px 22px;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
   }
   .hero__content {
     margin-top: 260px;
     padding: 0 20px 28px 20px;
   }
-  .hero__title { font-size: clamp(34px, 10vw, 56px); }
+  .hero__title {
+    font-size: clamp(34px, 10vw, 56px);
+    color: #fff;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
+  }
   .hero__title .indent { margin-left: 0; }
+  .hero__title .accent { text-shadow: 0 2px 16px rgba(0, 0, 0, 0.5); }
+  .hero__subtitle {
+    color: rgba(255, 255, 255, 0.92);
+    text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
+  }
   .hero__cta {
     margin-left: 0 !important;
   }
