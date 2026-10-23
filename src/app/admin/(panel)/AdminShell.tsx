@@ -47,7 +47,7 @@ export default function AdminShell({ email, children }: { email: string; childre
         playsInline
         aria-hidden="true"
       />
-      <div className="admin-bg-overlay" aria-hidden="true" />
+      <div className="admin-bg-overlay admin-bg-overlay--panel" aria-hidden="true" />
 
       {/* Mobile hamburger */}
       <button

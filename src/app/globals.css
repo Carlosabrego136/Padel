@@ -985,12 +985,17 @@ html[data-intro="done"] .hero__cta {
   background: linear-gradient(160deg, rgba(242, 241, 240, 0.86) 0%, rgba(242, 241, 240, 0.78) 50%, rgba(21, 188, 223, 0.22) 100%);
 }
 
+/* Variante más transparente: solo para las páginas internas del panel (ya con sesión iniciada) */
+.admin-bg-overlay--panel {
+  background: linear-gradient(160deg, rgba(242, 241, 240, 0.5) 0%, rgba(242, 241, 240, 0.4) 50%, rgba(21, 188, 223, 0.12) 100%);
+}
+
 .admin-sidebar {
   position: sticky;
   top: 0;
   width: 240px;
   height: 100dvh;
-  background: rgba(247, 246, 248, 0.88);
+  background: rgba(247, 246, 248, 0.62);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-right: 1px solid var(--color-border);
@@ -1034,7 +1039,7 @@ html[data-intro="done"] .hero__cta {
   flex: 1;
   padding: 24px;
   min-width: 0;
-  background: rgba(242, 241, 240, 0.72);
+  background: rgba(242, 241, 240, 0.4);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
