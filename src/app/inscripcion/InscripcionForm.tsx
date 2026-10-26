@@ -33,23 +33,10 @@ export default function InscripcionForm() {
     setGlobalError('');
     setStatus('sending');
 
+    // Se envía tal cual como multipart/form-data (incluye las fotos, si se eligieron).
+    // No se fija el header Content-Type a mano: el navegador lo arma solo con el
+    // boundary correcto cuando el body es un FormData.
     const fd = new FormData(e.currentTarget);
-    const body = {
-      categoria: fd.get('categoria') as string,
-      jugador1: {
-        nombre: (fd.get('j1_nombre') as string).trim(),
-        genero: fd.get('j1_genero') as string,
-        telefono: (fd.get('j1_telefono') as string).trim() || undefined,
-      },
-      jugador2: {
-        nombre: (fd.get('j2_nombre') as string).trim(),
-        genero: fd.get('j2_genero') as string,
-        telefono: (fd.get('j2_telefono') as string).trim() || undefined,
-      },
-      telefonoContacto: (fd.get('telefonoContacto') as string).trim(),
-      aceptaPublicar: fd.get('aceptaPublicar') === 'on',
-      aceptaReglamento: fd.get('aceptaReglamento') === 'on',
-    };
 
     retryCount.current = 0;
     let lastErr = '';
@@ -58,9 +45,8 @@ export default function InscripcionForm() {
       try {
         const res = await fetch('/api/inscripcion', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal: AbortSignal.timeout(15_000),
+          body: fd,
+          signal: AbortSignal.timeout(30_000),
         });
 
         const data = await res.json().catch(() => null);
@@ -177,6 +163,17 @@ export default function InscripcionForm() {
               style={{ marginTop: 10 }}
             />
             {errors['jugador1.telefono'] && <p className="form-error">{errors['jugador1.telefono']}</p>}
+
+            <label className="form-label" htmlFor="j1_foto" style={{ display: 'block', marginTop: 10 }}>
+              Foto (opcional)
+            </label>
+            <input
+              id="j1_foto"
+              name="foto1"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="form-input"
+            />
           </fieldset>
         </div>
       </div>
@@ -208,6 +205,17 @@ export default function InscripcionForm() {
               style={{ marginTop: 10 }}
             />
             {errors['jugador2.telefono'] && <p className="form-error">{errors['jugador2.telefono']}</p>}
+
+            <label className="form-label" htmlFor="j2_foto" style={{ display: 'block', marginTop: 10 }}>
+              Foto (opcional)
+            </label>
+            <input
+              id="j2_foto"
+              name="foto2"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="form-input"
+            />
           </fieldset>
         </div>
       </div>

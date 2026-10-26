@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { adminGetPareja } from '@/lib/queries';
 import { requireAdminPage } from '@/lib/auth-page';
 import ParejaActions from './ParejaActions';
+import FotoJugadorUpload from './FotoJugadorUpload';
 
 export const metadata = { title: 'Detalle de pareja' };
 export const dynamic = 'force-dynamic';
@@ -56,14 +57,31 @@ export default async function ParejaDetallePage({ params }: { params: { id: stri
 
       {/* Jugadores */}
       <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 12 }}>Jugadores</h2>
+        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: 4 }}>Jugadores</h2>
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+          Si un jugador no subió su foto al inscribirse, pueden agregársela aquí manualmente.
+        </p>
         {pareja.jugadores.map((j) => (
-          <div key={j.id} style={{ marginBottom: 8, fontSize: '0.9rem' }}>
-            <strong>{j.nombre}</strong>{' '}
-            <span style={{ color: 'var(--color-text-muted)' }}>
-              ({j.genero === 'M' ? 'Hombre' : 'Mujer'})
-              {j.telefono ? ` · ${j.telefono}` : ''}
-            </span>
+          <div
+            key={j.id}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 10,
+              marginBottom: 12,
+              fontSize: '0.9rem',
+            }}
+          >
+            <div>
+              <strong>{j.nombre}</strong>{' '}
+              <span style={{ color: 'var(--color-text-muted)' }}>
+                ({j.genero === 'M' ? 'Hombre' : 'Mujer'})
+                {j.telefono ? ` · ${j.telefono}` : ''}
+              </span>
+            </div>
+            <FotoJugadorUpload jugadorId={j.id} nombre={j.nombre} tieneFoto={j.tiene_foto} />
           </div>
         ))}
       </div>

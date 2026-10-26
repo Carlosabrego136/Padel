@@ -30,6 +30,25 @@ export async function readJson<T = unknown>(req: Request, maxBytes = 50_000): Pr
   }
 }
 
+/** Lee un cuerpo multipart/form-data (usado para subir fotos junto con el resto de un formulario). */
+export async function readFormData(req: Request, maxBytes = 4_000_000): Promise<FormData> {
+  const len = Number(req.headers.get('content-length') ?? '0');
+  if (len > maxBytes) throw new AppError(413, 'La solicitud es demasiado grande');
+  const type = req.headers.get('content-type') ?? '';
+  if (!type.toLowerCase().includes('multipart/form-data')) throw badRequest('Formato de solicitud no válido');
+  try {
+    return await req.formData();
+  } catch {
+    throw badRequest('No se pudo leer la solicitud');
+  }
+}
+
+/** Extrae un archivo de un FormData: null si el campo está vacío o no es un archivo real. */
+export function fileField(fd: FormData, name: string): File | null {
+  const v = fd.get(name);
+  return v instanceof File && v.size > 0 ? v : null;
+}
+
 /** Protección CSRF adicional a SameSite=Lax: el origen de una petición que modifica datos debe ser este mismo sitio. */
 export function assertSameOrigin(req: Request): void {
   const origin = req.headers.get('origin');

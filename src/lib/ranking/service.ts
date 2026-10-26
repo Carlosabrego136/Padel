@@ -281,6 +281,40 @@ export async function actualizarPagoPareja(
   });
 }
 
+/**
+ * Sube o reemplaza la foto de un jugador desde el panel admin — por ejemplo cuando
+ * el jugador no subió la suya al inscribirse y el club se la agrega manualmente.
+ */
+export async function actualizarFotoJugador(jugadorId: string, file: File, actor: Actor): Promise<void> {
+  validarUuid(jugadorId, 'jugador');
+  const foto = await procesarFoto(file, 'jugador');
+  if (!foto) throw badRequest('La foto está vacía o no se pudo leer');
+
+  await withAdminTx(actor, async (tx) => {
+    const r = await tx.query<{ id: string; nombre: string; tiene_foto: boolean }>(
+      "SELECT id, nombre, (foto IS NOT NULL) AS tiene_foto FROM jugadores WHERE id = $1 FOR UPDATE",
+      [jugadorId],
+    );
+    const jugador = r.rows[0];
+    if (!jugador) throw notFound('Jugador no encontrado');
+
+    await tx.query(`UPDATE jugadores SET foto = $2, foto_mime = $3 WHERE id = $1`, [
+      jugadorId,
+      foto.data,
+      foto.mime,
+    ]);
+
+    await tx.audit({
+      accion: 'actualizar_foto_jugador',
+      entidad: 'jugador',
+      entidadId: jugadorId,
+      antes: { tenia_foto: jugador.tiene_foto },
+      despues: { tenia_foto: true },
+      detalle: jugador.nombre,
+    });
+  });
+}
+
 export async function rechazarPareja(parejaId: string, motivo: string, actor: Actor): Promise<void> {
   validarUuid(parejaId, 'pareja');
   motivo = limpiarTexto(motivo);
