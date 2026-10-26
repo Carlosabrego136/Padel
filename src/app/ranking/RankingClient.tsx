@@ -13,6 +13,17 @@ export default function RankingClient({ categorias, ranking }: Props) {
   const [activa, setActiva] = useState(categorias[0]?.id ?? 0);
   const parejas = ranking[activa] ?? [];
 
+  // Por privacidad, el teléfono no se muestra abierto en la tabla: solo se revela
+  // si alguien toca "Ver teléfono" para esa pareja en particular.
+  const [telefonosVisibles, setTelefonosVisibles] = useState<Set<string>>(new Set());
+  const mostrarTelefono = (id: string) => {
+    setTelefonosVisibles((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  };
+
   return (
     <>
       {/* Tabs */}
@@ -57,9 +68,19 @@ export default function RankingClient({ categorias, ranking }: Props) {
                   </td>
                   <td style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                     {p.acepta_publicar ? (
-                      <a href={`tel:${p.telefono_contacto}`} style={{ color: 'var(--color-accent)' }}>
-                        {formatTel(p.telefono_contacto)}
-                      </a>
+                      telefonosVisibles.has(p.id) ? (
+                        <a href={`tel:${p.telefono_contacto}`} style={{ color: 'var(--color-accent)' }}>
+                          {formatTel(p.telefono_contacto)}
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          className="ranking-tel-btn"
+                          onClick={() => mostrarTelefono(p.id)}
+                        >
+                          Ver teléfono
+                        </button>
+                      )
                     ) : (
                       '—'
                     )}

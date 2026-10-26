@@ -250,6 +250,37 @@ export async function aprobarPareja(parejaId: string, pagoConfirmado: boolean, a
   });
 }
 
+/**
+ * Marca o desmarca manualmente el pago de una pareja. Es independiente de aprobar/
+ * rechazar: no cambia el estado, la posición ni nada más del ranking, solo ese campo.
+ */
+export async function actualizarPagoPareja(
+  parejaId: string,
+  pagoConfirmado: boolean,
+  actor: Actor,
+): Promise<void> {
+  validarUuid(parejaId, 'pareja');
+
+  await withAdminTx(actor, async (tx) => {
+    const r = await tx.query<{ id: string; pago_confirmado: boolean }>(
+      "SELECT id, pago_confirmado FROM parejas WHERE id = $1 FOR UPDATE",
+      [parejaId],
+    );
+    const pareja = r.rows[0];
+    if (!pareja) throw notFound('Pareja no encontrada');
+
+    await tx.query(`UPDATE parejas SET pago_confirmado = $2 WHERE id = $1`, [parejaId, pagoConfirmado]);
+
+    await tx.audit({
+      accion: 'actualizar_pago_pareja',
+      entidad: 'pareja',
+      entidadId: parejaId,
+      antes: { pago_confirmado: pareja.pago_confirmado },
+      despues: { pago_confirmado: pagoConfirmado },
+    });
+  });
+}
+
 export async function rechazarPareja(parejaId: string, motivo: string, actor: Actor): Promise<void> {
   validarUuid(parejaId, 'pareja');
   motivo = limpiarTexto(motivo);

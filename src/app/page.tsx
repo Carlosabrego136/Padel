@@ -33,9 +33,14 @@ export default async function HomePage() {
           <p className="hero__subtitle">
             Torneo oficial en Tepic, Nayarit. Consulta tu posición, reta a la pareja de arriba y sube en el ranking.
           </p>
-          <Link href="/ranking" className="hero__cta">
-            Ver ranking →
-          </Link>
+          <div className="hero__cta-row">
+            <Link href="/inscripcion" className="hero__cta">
+              Inscríbete aquí →
+            </Link>
+            <Link href="/ranking" className="hero__cta hero__cta--ghost">
+              Ver ranking
+            </Link>
+          </div>
         </div>
       </section>
 

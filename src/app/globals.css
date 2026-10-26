@@ -361,6 +361,36 @@ button, input, select, textarea {
   box-shadow: 0 0 0 1px rgba(21, 188, 223, 0.5), 0 14px 36px -10px rgba(15, 163, 194, 0.7);
 }
 
+/* Fila con los dos botones de la portada: "Inscríbete aquí" (principal) y "Ver ranking"
+   (secundario). La fila lleva el mismo margen que antes tenía el botón único, y los
+   botones dentro de ella ya no llevan margen propio para que no se sumen. */
+.hero__cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: min(clamp(36px, 6vw, 80px), 7vh);
+  margin-left: min(238px, 28vw);
+}
+
+.hero__cta-row .hero__cta {
+  margin-top: 0;
+  margin-left: 0;
+}
+
+.hero__cta--ghost {
+  background: rgba(6, 10, 18, 0.35);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: none;
+}
+.hero__cta--ghost:hover {
+  background: rgba(6, 10, 18, 0.55);
+  color: #fff;
+}
+
 /* ----- Chamfered "contact"-style button (navbar) ----- */
 .hero__nav-contact {
   display: inline-flex;
@@ -505,6 +535,9 @@ html[data-intro="done"] .hero__cta {
     text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4);
   }
   .hero__cta {
+    margin-left: 0 !important;
+  }
+  .hero__cta-row {
     margin-left: 0 !important;
   }
 }
@@ -889,6 +922,23 @@ html[data-intro="done"] .hero__cta {
 
 .ranking-table tr:hover td {
   background: var(--color-bg-hover);
+}
+
+/* Botón "Ver teléfono": por privacidad, el número no se muestra abierto en la tabla,
+   solo cuando alguien lo pide fila por fila. */
+.ranking-tel-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--color-accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ranking-tel-btn:hover {
+  color: var(--color-accent-hover);
 }
 
 .pos {

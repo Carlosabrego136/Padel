@@ -59,7 +59,13 @@ export default function ParejaActions({ pareja }: Props) {
     [router],
   );
 
-  const handleAprobar = () => apiCall(`/api/admin/parejas/${pareja.id}/aprobar`, 'POST', { pagoConfirmado: true });
+  // Aprobar ya no marca el pago como confirmado automáticamente: eso ahora es un paso
+  // manual aparte (ver handleTogglePago), para que solo se marque "Pagado" cuando el
+  // club de verdad haya recibido el pago.
+  const handleAprobar = () => apiCall(`/api/admin/parejas/${pareja.id}/aprobar`, 'POST', { pagoConfirmado: false });
+
+  const handleTogglePago = () =>
+    apiCall(`/api/admin/parejas/${pareja.id}/pago`, 'PUT', { pagoConfirmado: !pareja.pago_confirmado });
 
   const handleMotivoSubmit = async () => {
     if (motivo.trim().length < 5) {
@@ -98,6 +104,15 @@ export default function ParejaActions({ pareja }: Props) {
       {error && <p className="form-error" style={{ marginBottom: 12 }}>{error}</p>}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+        <AccionConAyuda ayuda="Marca manualmente si esta pareja ya pagó su inscripción, aparte de aprobarla. Esto no afecta su aprobación, su posición ni nada del ranking — es solo para que ustedes lleven el control de quién ya pagó.">
+          <button className="btn btn-secondary" onClick={handleTogglePago} disabled={isLoading}>
+            {loading?.includes('/pago')
+              ? 'Actualizando…'
+              : pareja.pago_confirmado
+              ? 'Marcar como no pagado'
+              : 'Marcar como pagado'}
+          </button>
+        </AccionConAyuda>
         {pareja.estado === 'pendiente' && (
           <>
             <AccionConAyuda
