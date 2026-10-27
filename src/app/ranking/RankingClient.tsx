@@ -61,10 +61,24 @@ export default function RankingClient({ categorias, ranking }: Props) {
                 <tr key={p.id}>
                   <td className="ranking-pos">{p.posicion ?? i + 1}</td>
                   <td>
-                    <Link href={`/pareja/${p.id}`} className="ranking-link">
-                      {p.jugadores.map((j) => j.nombre).join(' / ') || '—'}
-                    </Link>
-                    {p.mixta && <span className="badge badge-mix">Mixta</span>}
+                    <div className="ranking-pareja">
+                      <span className="ranking-avatars">
+                        {p.jugadores.map((j) => (
+                          <span className="ranking-avatar" key={j.id}>
+                            {j.tiene_foto ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={`/api/foto/${j.id}`} alt={j.nombre} loading="lazy" />
+                            ) : (
+                              <span className="ranking-avatar__fallback">{j.nombre.charAt(0).toUpperCase()}</span>
+                            )}
+                          </span>
+                        ))}
+                      </span>
+                      <Link href={`/pareja/${p.id}`} className="ranking-link">
+                        {p.jugadores.map((j) => j.nombre).join(' / ') || '—'}
+                      </Link>
+                      {p.mixta && <span className="badge badge-mix">Mixta</span>}
+                    </div>
                   </td>
                   <td style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                     {p.acepta_publicar ? (

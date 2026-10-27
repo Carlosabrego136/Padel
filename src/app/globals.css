@@ -1011,6 +1011,52 @@ html[data-intro="done"] .hero__cta {
   border: 2px solid var(--color-border);
 }
 
+/* Fotos de jugadores en la tabla de ranking, junto al nombre de la pareja. */
+.ranking-pareja {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ranking-avatars {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.ranking-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--color-bg-alt);
+  border: 2px solid var(--color-bg-card);
+  box-shadow: 0 0 0 1px var(--color-border);
+}
+
+.ranking-avatar + .ranking-avatar {
+  margin-left: -10px;
+}
+
+.ranking-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ranking-avatar__fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
 /* ---------- Category tabs (ranking) — nombres usados por RankingClient ------ */
 .category-tabs {
   display: flex;
