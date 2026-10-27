@@ -239,6 +239,34 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
         </>
       ),
     },
+    {
+      num: 6,
+      titulo: 'Reporte de resultados y sede del partido',
+      cuerpo: (
+        <>
+          <div className="rule-card__sub">
+            <p className="rule-card__sub-title">Sede obligatoria</p>
+            <p>
+              Todos los partidos del ranking deben jugarse <strong>obligatoriamente en las canchas de Pádel
+              Life</strong>.
+            </p>
+          </div>
+          <div className="rule-card__sub">
+            <p className="rule-card__sub-title">Reporte del marcador</p>
+            <p>
+              En cuanto termine el partido, ambas parejas deben reportar el marcador a los encargados del ranking.
+            </p>
+          </div>
+          <div className="rule-card__encargados">
+            <p className="rule-card__encargados-label">Encargados del ranking</p>
+            <div className="rule-card__encargados-names">
+              <span className="rule-card__encargado-pill">Federico Gutiérrez</span>
+              <span className="rule-card__encargado-pill">Fabiola González</span>
+            </div>
+          </div>
+        </>
+      ),
+    },
   ];
 }
 
