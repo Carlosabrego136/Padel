@@ -33,6 +33,22 @@ export default async function HomePage() {
           <p className="hero__subtitle">
             Torneo oficial en Tepic, Nayarit. Consulta tu posición, reta a la pareja de arriba y sube en el ranking.
           </p>
+
+          <div className="hero__season">
+            <span className="hero__season-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
+                <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="1.8" />
+                <line x1="8" y1="2.5" x2="8" y2="6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                <line x1="16" y1="2.5" x2="16" y2="6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="hero__season-text">
+              <span className="hero__season-title">Temporada: 10 de noviembre – 9 de marzo</span>
+              <span className="hero__season-sub">Pausa navideña del 21 de diciembre al 4 de enero</span>
+            </span>
+          </div>
+
           <div className="hero__cta-row">
             <Link href="/inscripcion" className="hero__cta">
               Inscríbete aquí →

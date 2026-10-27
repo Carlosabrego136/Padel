@@ -329,6 +329,57 @@ button, input, select, textarea {
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
 }
 
+/* Aviso destacado con las fechas de temporada, en el hero (entre el subtítulo y los botones). */
+.hero__season {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 480px;
+  margin-top: calc(var(--u) * 3);
+  margin-left: min(238px, 28vw);
+  padding: 12px 18px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(21, 188, 223, 0.16), rgba(6, 10, 22, 0.5));
+  border: 1px solid var(--color-accent-border);
+  box-shadow: 0 12px 30px -16px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(46, 240, 253, 0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.hero__season-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(21, 188, 223, 0.18);
+  color: var(--color-accent);
+}
+
+.hero__season-icon svg { width: 18px; height: 18px; }
+
+.hero__season-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hero__season-title {
+  font-size: clamp(13px, 1.6vw, 15px);
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
+}
+
+.hero__season-sub {
+  font-size: clamp(11px, 1.3vw, 12.5px);
+  font-weight: 500;
+  color: var(--color-accent-hover);
+}
+
 .hero__cta,
 .btn-chamfer {
   display: inline-flex;
@@ -539,6 +590,10 @@ html[data-intro="done"] .hero__cta {
   }
   .hero__cta-row {
     margin-left: 0 !important;
+  }
+  .hero__season {
+    margin-left: 0;
+    max-width: 100%;
   }
 }
 
