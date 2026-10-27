@@ -65,6 +65,19 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
               Juegas <strong>un solo partido por semana</strong>: una semana puede tocarte retar a la pareja de
               arriba, y otra semana te puede tocar que te rete la pareja de abajo — nunca los dos al mismo tiempo.
             </p>
+            <p style={{ marginTop: 8 }}>
+              Nadie elige contra quién juega: el rival siempre lo determina automáticamente la posición en la
+              tabla, nunca lo decide el jugador.
+            </p>
+            <div className="rule-card__example">
+              <p className="rule-card__example-label">Ejemplo</p>
+              <p>
+                Si tu pareja está en el <strong>lugar 5</strong>, solo puedes retar a la pareja del{' '}
+                <strong>lugar 4</strong> (nunca a otra). Si ganas, subes al lugar 4. Pero también puede pasar que,
+                esa misma semana, la pareja del <strong>lugar 6</strong> decida retarte a ti: en ese caso no eliges
+                jugar, simplemente te toca defender tu lugar.
+              </p>
+            </div>
           </div>
           <div className="rule-card__sub">
             <p className="rule-card__sub-title">Resultado del partido</p>
@@ -101,6 +114,14 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
               Después de esa fecha, el costo será de <strong>${cuotaTardia} pesos por jugador</strong>, sujeto a
               disponibilidad de lugares y autorización del club.
             </p>
+            <div className="rule-card__example">
+              <p className="rule-card__example-label">Importante</p>
+              <p>
+                No se puede jugar el primer partido del ranking sin haber pagado los{' '}
+                <strong>${cuotaInicial} pesos</strong> de inscripción
+                {limite ? <>. Fecha límite de pago: <strong>{limite}</strong></> : '.'}
+              </p>
+            </div>
           </div>
           <div className="rule-card__sub">
             <p className="rule-card__sub-title">2.3 Salida y reingreso al ranking</p>
