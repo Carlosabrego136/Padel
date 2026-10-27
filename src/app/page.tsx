@@ -150,6 +150,22 @@ export default async function HomePage() {
               abajo. Si ganas, subes; si pierdes, bajas. Al llegar al primer lugar de tu categoría, puedes ascender
               retando al último lugar de la categoría superior.
             </p>
+
+            <div className="about__season" role="note">
+              <span className="about__season-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="3" y="5" width="18" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
+                  <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" strokeWidth="1.8" />
+                  <line x1="8" y1="2.5" x2="8" y2="6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                  <line x1="16" y1="2.5" x2="16" y2="6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+              </span>
+              <div className="about__season-text">
+                <span className="about__season-title">Temporada: 10 de noviembre – 9 de marzo</span>
+                <span className="about__season-sub">Pausa navideña del 21 de diciembre al 4 de enero</span>
+              </div>
+            </div>
+
             <Link href="/reglamento" className="btn-chamfer about__cta">
               Ver reglamento
             </Link>

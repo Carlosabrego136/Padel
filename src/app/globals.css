@@ -594,6 +594,54 @@ html[data-intro="done"] .hero__cta {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
 
+/* Aviso destacado con las fechas de temporada, dentro de "Cómo funciona". */
+.about__season {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 520px;
+  margin: 24px 0 0 min(160px, 18vw);
+  padding: 14px 18px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(21, 188, 223, 0.14), rgba(6, 10, 22, 0.55));
+  border: 1px solid var(--color-accent-border);
+  box-shadow: 0 12px 30px -16px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(46, 240, 253, 0.08);
+  backdrop-filter: blur(6px);
+}
+
+.about__season-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(21, 188, 223, 0.16);
+  color: var(--color-accent);
+}
+
+.about__season-icon svg { width: 20px; height: 20px; }
+
+.about__season-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.about__season-title {
+  font-size: clamp(14px, 1.6vw, 16px);
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+}
+
+.about__season-sub {
+  font-size: clamp(12px, 1.3vw, 13.5px);
+  font-weight: 500;
+  color: var(--color-accent-hover);
+}
+
 .about__cta {
   margin: 36px 0 0 min(160px, 18vw);
 }
@@ -648,6 +696,7 @@ html[data-intro="done"] .hero__cta {
   .about { padding-left: 20px; padding-right: 20px; }
   .about__title .indent,
   .about__text,
+  .about__season,
   .about__cta { margin-left: 0; }
 
   /* En pantallas angostas, sin forzar una altura mínima alta: así el ancho completo
