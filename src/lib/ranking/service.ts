@@ -513,6 +513,67 @@ export async function eliminarPareja(parejaId: string, motivo: string, actor: Ac
 }
 
 // ---------------------------------------------------------------------------
+// Reinicio de temporada
+// ---------------------------------------------------------------------------
+
+export interface ResultadoReinicioTemporada {
+  parejasRetiradas: number;
+  categoriasLiberadas: number;
+}
+
+/**
+ * Cierra la temporada actual para dejar el ranking listo para una nueva, SIN borrar nada:
+ *  1. Retira (archiva) todas las parejas pendientes o aprobadas: dejan de aparecer en el
+ *     ranking público, pero su historial, partidos y auditoría quedan intactos para consulta.
+ *  2. Libera el sorteo de todas las categorías, para que se pueda volver a sortear cuando
+ *     arranque la nueva temporada.
+ * Las fechas (inicio, fin, pausa, fecha límite de inscripción) NO se tocan aquí: se actualizan
+ * por separado desde Configuración, lo cual ya regenera las jornadas automáticamente.
+ * No borra nada: todo queda archivado y disponible en el historial.
+ */
+export async function reiniciarTemporada(actor: Actor): Promise<ResultadoReinicioTemporada> {
+  return withAdminTx(actor, async (tx) => {
+    const parejasR = await tx.query<{ id: string }>(
+      `SELECT id FROM parejas WHERE estado IN ('pendiente', 'aprobada')`,
+    );
+    const ids = parejasR.rows.map((r) => r.id);
+
+    if (ids.length > MAX_LOOP * 5) {
+      throw new Error('Demasiadas parejas para reiniciar la temporada de una sola vez');
+    }
+
+    if (ids.length > 0) {
+      await tx.query(
+        `UPDATE parejas
+         SET estado = 'retirada', posicion = NULL, retirada_en = now(),
+             motivo_cierre = 'Fin de temporada (reinicio para la siguiente)'
+         WHERE id = ANY($1::uuid[])`,
+        [ids],
+      );
+      await tx.query(
+        `UPDATE jugadores SET activo = false WHERE pareja_id = ANY($1::uuid[])`,
+        [ids],
+      );
+    }
+
+    const catR = await tx.query<{ id: number }>(
+      `UPDATE categorias SET sorteo_realizado = false, sorteo_en = NULL
+       WHERE sorteo_realizado = true
+       RETURNING id`,
+    );
+
+    await tx.audit({
+      accion: 'reiniciar_temporada',
+      entidad: 'temporada',
+      entidadId: null,
+      despues: { parejasRetiradas: ids.length, categoriasLiberadas: catR.rows.length },
+    });
+
+    return { parejasRetiradas: ids.length, categoriasLiberadas: catR.rows.length };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Sorteo
 // ---------------------------------------------------------------------------
 

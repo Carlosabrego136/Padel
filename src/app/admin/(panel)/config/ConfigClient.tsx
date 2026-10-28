@@ -22,7 +22,51 @@ export default function ConfigClient({ config }: Props) {
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [exito, setExito] = useState<string | null>(null);
 
+  const [reiniciando, setReiniciando] = useState(false);
+  const [errorReinicio, setErrorReinicio] = useState<string | null>(null);
+  const [exitoReinicio, setExitoReinicio] = useState<string | null>(null);
+
   const claves = Object.keys(CONFIG_DEFS);
+
+  const handleReiniciarTemporada = useCallback(async () => {
+    if (reiniciando) return;
+    if (
+      !confirm(
+        '¿Reiniciar la temporada? Esto retira del ranking a TODAS las parejas pendientes o aprobadas ' +
+          '(no se borran, quedan archivadas en el historial) y libera el sorteo de todas las categorías ' +
+          'para que se pueda volver a sortear. Después, actualiza las fechas de la nueva temporada aquí ' +
+          'mismo en Configuración. Esta acción no se puede deshacer. ¿Continuar?',
+      )
+    ) {
+      return;
+    }
+
+    setErrorReinicio(null);
+    setExitoReinicio(null);
+    setReiniciando(true);
+    try {
+      const res = await fetch('/api/admin/temporada/reiniciar', {
+        method: 'POST',
+        signal: AbortSignal.timeout(20_000),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setErrorReinicio(data?.error ?? 'No se pudo reiniciar la temporada');
+        return;
+      }
+      const n = data?.resultado?.parejasRetiradas ?? 0;
+      setExitoReinicio(
+        n > 0
+          ? `Temporada reiniciada: se retiraron ${n} pareja(s) y se liberó el sorteo de todas las categorías.`
+          : 'Temporada reiniciada: no había parejas activas que retirar. Se liberó el sorteo de todas las categorías.',
+      );
+      router.refresh();
+    } catch {
+      setErrorReinicio('Error de conexión');
+    } finally {
+      setReiniciando(false);
+    }
+  }, [reiniciando, router]);
 
   const handleGuardar = useCallback(
     async (clave: string) => {
@@ -79,6 +123,37 @@ export default function ConfigClient({ config }: Props) {
   return (
     <div>
       {exito && <div className="toast toast-success" style={{ marginBottom: 16 }}>{exito}</div>}
+
+      <div
+        className="card"
+        style={{ padding: 16, marginBottom: 24, border: '1px solid var(--color-error)' }}
+      >
+        <p style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4, color: 'var(--color-error)' }}>
+          Reiniciar temporada
+        </p>
+        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+          Úsalo cuando termine esta temporada y vayan a arrancar una nueva. Retira del ranking a todas
+          las parejas pendientes o aprobadas (quedan archivadas en el historial, no se borra nada) y
+          libera el sorteo de todas las categorías. Después, actualiza aquí mismo las fechas de la
+          nueva temporada.
+        </p>
+        <button
+          className="btn btn-sm"
+          style={{ background: 'var(--color-error)', color: '#fff', border: 'none' }}
+          disabled={reiniciando}
+          onClick={handleReiniciarTemporada}
+        >
+          {reiniciando ? 'Reiniciando…' : 'Reiniciar temporada'}
+        </button>
+        {exitoReinicio && (
+          <p style={{ fontSize: '0.8rem', color: 'var(--color-success)', marginTop: 10 }}>
+            {exitoReinicio}
+          </p>
+        )}
+        {errorReinicio && (
+          <p style={{ fontSize: '0.8rem', color: 'var(--color-error)', marginTop: 10 }}>{errorReinicio}</p>
+        )}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {claves.map((clave) => {
