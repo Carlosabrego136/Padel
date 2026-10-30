@@ -6,7 +6,7 @@ export const metadata = { title: 'Panel' };
 // Interruptor manual: en true, el panel de administrador queda bloqueado (muestra un aviso
 // en vez del contenido). El sitio público y las inscripciones NO se ven afectadas: esto solo
 // corta el acceso a /admin/*, nada de datos se toca. Para reactivar, cambiar a false.
-const PANEL_PAUSADO = true;
+const PANEL_PAUSADO = false;
 
 export default async function AdminPanelLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdminPage();
