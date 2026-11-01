@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
   "crons": [
-    { "path": "/api/cron/cerrar-jornada", "schedule": "0 23 * * *" }
+    { "path": "/api/cron/cerrar-jornada", "schedule": "0 1 * * *" }
   ]
 }
