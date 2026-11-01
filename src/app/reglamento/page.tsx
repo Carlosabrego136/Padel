@@ -74,8 +74,8 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
               <p>
                 Si tu pareja está en el <strong>lugar 5</strong>, solo puedes retar a la pareja del{' '}
                 <strong>lugar 4</strong> (nunca a otra). Si ganas, subes al lugar 4. Pero también puede pasar que,
-                esa misma semana, la pareja del <strong>lugar 6</strong> decida retarte a ti: en ese caso no eliges
-                jugar, simplemente te toca defender tu lugar.
+                esa misma semana, te toque que te rete la pareja del <strong>lugar 6</strong>: en ese caso no
+                eliges jugar, simplemente te toca defender tu lugar.
               </p>
             </div>
           </div>
