@@ -7,6 +7,7 @@ import { useState, useCallback } from 'react';
 const NAV_ITEMS = [
   { href: '/admin', label: 'Inicio', icon: '📊' },
   { href: '/admin/parejas', label: 'Parejas', icon: '👥' },
+  { href: '/admin/telefonos', label: 'Teléfonos', icon: '📞' },
   { href: '/admin/sorteo', label: 'Sorteo', icon: '🎲' },
   { href: '/admin/partidos', label: 'Partidos', icon: '🏸' },
   { href: '/admin/jornadas', label: 'Jornadas', icon: '📅' },
