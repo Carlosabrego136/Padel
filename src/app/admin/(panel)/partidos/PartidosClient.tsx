@@ -1,15 +1,32 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { JornadaRow, PartidoConNombres } from '@/lib/queries';
+import type { JornadaRow, PartidoConNombres, CategoriaRow } from '@/lib/queries';
 
 interface Props {
   jornadas: JornadaRow[];
+  categorias: CategoriaRow[];
+}
+
+interface RetoGenerado {
+  categoriaId: number;
+  retadoraId: string;
+  retadaId: string;
+  posRetadora: number;
+  posRetada: number;
+  partidoId: string;
+}
+
+interface RetoOmitido {
+  categoriaId: number;
+  parejaId: string;
+  posicion: number;
+  motivo: string;
 }
 
 type ModalType = 'resultado' | 'resolver' | 'programar' | 'cancelar' | null;
 
-export default function PartidosClient({ jornadas }: Props) {
+export default function PartidosClient({ jornadas, categorias }: Props) {
   const [jornadaId, setJornadaId] = useState<number | null>(() => {
     const programada = jornadas.find((j) => j.estado === 'programada' && j.tipo === 'normal');
     return programada?.id ?? jornadas[jornadas.length - 1]?.id ?? null;
@@ -19,6 +36,14 @@ export default function PartidosClient({ jornadas }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const [generando, setGenerando] = useState(false);
+  const [resumenGeneracion, setResumenGeneracion] = useState<{ creados: RetoGenerado[]; omitidos: RetoOmitido[] } | null>(null);
+
+  const nombreCategoria = useCallback(
+    (id: number) => categorias.find((c) => c.id === id)?.nombre ?? `Categoría ${id}`,
+    [categorias],
+  );
 
   // Modal state
   const [modal, setModal] = useState<ModalType>(null);
@@ -55,6 +80,41 @@ export default function PartidosClient({ jornadas }: Props) {
   useEffect(() => {
     fetchPartidos();
   }, [fetchPartidos]);
+
+  const handleGenerarRetos = useCallback(async () => {
+    if (!jornadaId || generando) return;
+    if (
+      !confirm(
+        'Esto arma automáticamente los retos de la semana para TODAS las categorías (cada pareja contra la que está una posición arriba). Las parejas que ya tengan partido esta semana se brincan solas, no se duplica nada. ¿Continuar?',
+      )
+    ) {
+      return;
+    }
+
+    setGenerando(true);
+    setError(null);
+    setSuccess(null);
+    setResumenGeneracion(null);
+    try {
+      const res = await fetch('/api/admin/partidos/generar-retos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ jornadaId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Error al generar los retos');
+        return;
+      }
+      setResumenGeneracion({ creados: data.creados ?? [], omitidos: data.omitidos ?? [] });
+      setSuccess(`Se crearon ${data.creados?.length ?? 0} partido(s) nuevo(s) para esta semana`);
+      fetchPartidos();
+    } catch {
+      setError('Error de conexión');
+    } finally {
+      setGenerando(false);
+    }
+  }, [jornadaId, generando, fetchPartidos]);
 
   const openModal = (type: ModalType, p: PartidoConNombres) => {
     setSelectedPartido(p);
@@ -132,27 +192,105 @@ export default function PartidosClient({ jornadas }: Props) {
     submitAction(`/api/admin/partidos/${selectedPartido.id}/cancelar`, 'POST', { motivo: motivo.trim() });
   };
 
+  const jornadaSeleccionada = jornadas.find((j) => j.id === jornadaId);
+  const puedeGenerar = jornadaSeleccionada?.estado === 'programada';
+
   return (
     <div>
       {/* Selector de jornada */}
-      <div className="form-group" style={{ maxWidth: 300, marginBottom: 20 }}>
-        <label className="form-label">Jornada</label>
-        <select
-          className="form-input"
-          value={jornadaId ?? ''}
-          onChange={(e) => setJornadaId(e.target.value ? parseInt(e.target.value, 10) : null)}
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: 20 }}>
+        <div className="form-group" style={{ maxWidth: 300, margin: 0 }}>
+          <label className="form-label">Jornada</label>
+          <select
+            className="form-input"
+            value={jornadaId ?? ''}
+            onChange={(e) => setJornadaId(e.target.value ? parseInt(e.target.value, 10) : null)}
+          >
+            <option value="">Seleccionar jornada</option>
+            {jornadas.map((j) => (
+              <option key={j.id} value={j.id}>
+                #{j.numero ?? j.id} — {j.estado} ({new Date(j.inicio).toLocaleDateString('es-MX')})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Generar retos de la semana */}
+      <div
+        className="card"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 16,
+          padding: 18,
+          marginBottom: 20,
+          background: 'linear-gradient(135deg, var(--color-bg-card), var(--color-bg-alt))',
+          border: '1px solid var(--color-accent-border, var(--color-border))',
+        }}
+      >
+        <div>
+          <p style={{ fontWeight: 700, fontSize: '0.95rem', margin: 0 }}>Generar retos de la semana</p>
+          <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', margin: '4px 0 0', maxWidth: 480 }}>
+            Arma de un solo clic, para todas las categorías, el reto de cada pareja contra la que está una posición
+            arriba. Es seguro repetirlo: lo que ya esté armado se brinca solo.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary"
+          style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}
+          onClick={handleGenerarRetos}
+          disabled={!puedeGenerar || generando}
+          title={!puedeGenerar ? 'Elige una jornada con estado "programada" para poder generar retos' : undefined}
         >
-          <option value="">Seleccionar jornada</option>
-          {jornadas.map((j) => (
-            <option key={j.id} value={j.id}>
-              #{j.numero ?? j.id} — {j.estado} ({new Date(j.inicio).toLocaleDateString('es-MX')})
-            </option>
-          ))}
-        </select>
+          {generando ? 'Generando…' : 'Generar retos de la semana'}
+        </button>
       </div>
 
       {error && <div className="toast toast-error" style={{ marginBottom: 16 }}>{error}</div>}
       {success && <div className="toast toast-success" style={{ marginBottom: 16 }}>{success}</div>}
+
+      {resumenGeneracion && (
+        <div className="card" style={{ padding: 18, marginBottom: 20 }}>
+          <p style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: 10 }}>Resultado de la generación</p>
+          {resumenGeneracion.creados.length > 0 && (
+            <div style={{ marginBottom: resumenGeneracion.omitidos.length > 0 ? 14 : 0 }}>
+              <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-success)', marginBottom: 6 }}>
+                Creados ({resumenGeneracion.creados.length})
+              </p>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                {resumenGeneracion.creados.map((r) => (
+                  <li key={r.partidoId}>
+                    {nombreCategoria(r.categoriaId)}: lugar {r.posRetadora} reta a lugar {r.posRetada}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {resumenGeneracion.omitidos.length > 0 && (
+            <div>
+              <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: 6 }}>
+                Sin partido esta semana ({resumenGeneracion.omitidos.length})
+              </p>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                {resumenGeneracion.omitidos.map((o) => (
+                  <li key={o.parejaId}>
+                    {nombreCategoria(o.categoriaId)}: lugar {o.posicion} ({o.motivo})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {resumenGeneracion.creados.length === 0 && resumenGeneracion.omitidos.length === 0 && (
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+              No hay parejas aprobadas con posición asignada todavía.
+            </p>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <p style={{ color: 'var(--color-text-muted)' }}>Cargando partidos…</p>

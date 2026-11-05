@@ -782,6 +782,93 @@ export async function crearPartido(
   });
 }
 
+export interface RetoGenerado {
+  categoriaId: number;
+  retadoraId: string;
+  retadaId: string;
+  posRetadora: number;
+  posRetada: number;
+  partidoId: string;
+}
+
+export interface RetoOmitido {
+  categoriaId: number;
+  parejaId: string;
+  posicion: number;
+  motivo: string;
+}
+
+export interface GenerarRetosResultado {
+  creados: RetoGenerado[];
+  omitidos: RetoOmitido[];
+}
+
+/**
+ * Genera en bloque los retos de la semana para TODAS las categorías: cada pareja (salvo el 1er
+ * lugar de cada categoría, que no tiene a quién retar arriba) intenta retar a la que está
+ * exactamente una posición arriba, en el orden del reglamento. Reutiliza crearPartido() pareja por
+ * pareja (misma validación, mismo registro de auditoría por partido creado), así que es seguro
+ * ejecutarlo más de una vez: una pareja que ya tiene partido esta semana simplemente se omite, sin
+ * duplicar nada. Por el límite de "un solo partido por semana por pareja" ya existente, las parejas
+ * quedan acomodadas solas en bloques (lugar 2 reta a 1, lugar 4 reta a 3, lugar 6 reta a 5, …); si
+ * una categoría tiene número impar de parejas, la última se queda sin partido esa semana (al cerrar
+ * la jornada, el motor ya la baja una posición por inactividad, como marca el reglamento).
+ */
+export async function generarRetosSemana(jornadaId: number, actor: Actor): Promise<GenerarRetosResultado> {
+  if (!Number.isInteger(jornadaId) || jornadaId < 1) throw badRequest('Jornada no válida');
+
+  const jornadaR = await query<{ id: number; estado: string }>(
+    'SELECT id, estado FROM jornadas WHERE id = $1',
+    [jornadaId],
+  );
+  if (!jornadaR.rows[0]) throw notFound('Jornada no encontrada');
+  if (jornadaR.rows[0].estado !== 'programada') throw conflict('La jornada ya está cerrada');
+
+  const parejasR = await query<{ id: string; categoria_id: number; posicion: number }>(
+    `SELECT id, categoria_id, posicion FROM parejas
+     WHERE estado = 'aprobada' AND posicion IS NOT NULL
+     ORDER BY categoria_id, posicion`,
+    [],
+  );
+
+  const porCategoria = new Map<number, { id: string; posicion: number }[]>();
+  for (const p of parejasR.rows) {
+    const arr = porCategoria.get(p.categoria_id) ?? [];
+    arr.push({ id: p.id, posicion: p.posicion });
+    porCategoria.set(p.categoria_id, arr);
+  }
+
+  const creados: RetoGenerado[] = [];
+  const omitidos: RetoOmitido[] = [];
+  let iteraciones = 0;
+
+  for (const [categoriaId, parejas] of porCategoria) {
+    // La posición 1 no tiene a quién retar arriba; se empieza desde la posición 2.
+    for (let i = 1; i < parejas.length; i++) {
+      iteraciones++;
+      if (iteraciones > MAX_LOOP) throw new Error('Límite de generación de retos excedido');
+
+      const retadora = parejas[i];
+      try {
+        const r = await crearPartido({ tipo: 'reto', retadoraId: retadora.id, jornadaId }, actor);
+        creados.push({
+          categoriaId,
+          retadoraId: retadora.id,
+          retadaId: r.retadaId,
+          posRetadora: retadora.posicion,
+          posRetada: parejas[i - 1].posicion,
+          partidoId: r.partidoId,
+        });
+      } catch (err) {
+        const motivo = err instanceof Error ? err.message : 'Error desconocido';
+        omitidos.push({ categoriaId, parejaId: retadora.id, posicion: retadora.posicion, motivo });
+      }
+    }
+  }
+
+  return { creados, omitidos };
+}
+
 export async function programarPartido(
   partidoId: string,
   data: { fechaJuego?: string; cancha?: number },

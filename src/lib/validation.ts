@@ -136,6 +136,10 @@ export const crearPartidoSchema = z.object({
   cancha: z.number().int().min(1).max(12).optional(),
 });
 
+export const generarRetosSchema = z.object({
+  jornadaId: z.number().int().min(1),
+});
+
 export const programarSchema = z.object({
   fechaJuego: fechaHoraLocalSchema.optional().or(z.literal('').transform(() => undefined)),
   cancha: z.number().int().min(1).max(12).optional(),
