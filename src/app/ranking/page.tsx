@@ -16,7 +16,9 @@ export default async function RankingPage() {
   const ranking: Record<number, Awaited<ReturnType<typeof getRankingCategoria>>> = {};
 
   try {
-    categorias = await getCategorias();
+    // La categoría marcada como "oculta" (desde Configuración, en el panel admin) no se muestra
+    // en el ranking público — por ejemplo, mientras no tiene parejas inscritas todavía.
+    categorias = (await getCategorias()).filter((c) => !c.oculta);
     // Pre-fetch ranking for all categories in parallel
     const results = await Promise.all(
       categorias.map((c) => getRankingCategoria(c.id).then((r) => ({ id: c.id, data: r }))),

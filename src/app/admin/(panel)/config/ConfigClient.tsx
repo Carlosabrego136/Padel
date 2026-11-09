@@ -3,17 +3,18 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { CONFIG_DEFS } from '@/lib/validation';
-import type { ConfigRow } from '@/lib/queries';
+import type { ConfigRow, CategoriaRow } from '@/lib/queries';
 
 interface Props {
   config: ConfigRow[];
+  categorias: CategoriaRow[];
   /** No usado directamente: ConfigClient deriva las etiquetas de CONFIG_DEFS. */
   defs?: { clave: string; etiqueta: string; ayuda: string | null }[];
 }
 
 const MAX_RETRIES = 2;
 
-export default function ConfigClient({ config }: Props) {
+export default function ConfigClient({ config, categorias }: Props) {
   const router = useRouter();
   const [valores, setValores] = useState<Record<string, string>>(
     Object.fromEntries(config.map((c) => [c.clave, c.valor])),
@@ -21,6 +22,40 @@ export default function ConfigClient({ config }: Props) {
   const [guardando, setGuardando] = useState<string | null>(null);
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [exito, setExito] = useState<string | null>(null);
+
+  const [categoriasState, setCategoriasState] = useState(categorias);
+  const [guardandoCategoria, setGuardandoCategoria] = useState<number | null>(null);
+  const [errorCategoria, setErrorCategoria] = useState<string | null>(null);
+
+  const handleToggleCategoria = useCallback(
+    async (categoriaId: number, ocultaActual: boolean) => {
+      if (guardandoCategoria) return;
+      setErrorCategoria(null);
+      setGuardandoCategoria(categoriaId);
+      const nuevoOculta = !ocultaActual;
+      try {
+        const res = await fetch('/api/admin/categorias', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ categoriaId, oculta: nuevoOculta }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+          setErrorCategoria(data?.error ?? 'No se pudo actualizar la categoría');
+          return;
+        }
+        setCategoriasState((prev) =>
+          prev.map((c) => (c.id === categoriaId ? { ...c, oculta: nuevoOculta } : c)),
+        );
+        router.refresh();
+      } catch {
+        setErrorCategoria('Error de conexión');
+      } finally {
+        setGuardandoCategoria(null);
+      }
+    },
+    [guardandoCategoria, router],
+  );
 
   const [reiniciando, setReiniciando] = useState(false);
   const [errorReinicio, setErrorReinicio] = useState<string | null>(null);
@@ -123,6 +158,51 @@ export default function ConfigClient({ config }: Props) {
   return (
     <div>
       {exito && <div className="toast toast-success" style={{ marginBottom: 16 }}>{exito}</div>}
+
+      <div className="card" style={{ padding: 16, marginBottom: 24 }}>
+        <p style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: 4 }}>
+          Categorías visibles en el ranking público
+        </p>
+        <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 14 }}>
+          Oculta una categoría de la página pública de Ranking mientras no tenga parejas (para que no se
+          vea sola o vacía). No afecta inscripciones, sorteo ni partidos — solo lo que se ve en esa página.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {categoriasState.map((c) => (
+            <label
+              key={c.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 12,
+                padding: '8px 12px',
+                borderRadius: 8,
+                background: 'var(--color-bg-alt)',
+                cursor: guardandoCategoria === c.id ? 'default' : 'pointer',
+                opacity: guardandoCategoria === c.id ? 0.6 : 1,
+              }}
+            >
+              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{c.nombre}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                  {c.oculta ? 'Oculta' : 'Visible'}
+                </span>
+                <input
+                  type="checkbox"
+                  checked={!c.oculta}
+                  disabled={guardandoCategoria === c.id}
+                  onChange={() => handleToggleCategoria(c.id, c.oculta)}
+                  style={{ width: 18, height: 18, cursor: 'pointer' }}
+                />
+              </span>
+            </label>
+          ))}
+        </div>
+        {errorCategoria && (
+          <p style={{ fontSize: '0.8rem', color: 'var(--color-error)', marginTop: 10 }}>{errorCategoria}</p>
+        )}
+      </div>
 
       <div
         className="card"

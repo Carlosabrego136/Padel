@@ -34,6 +34,7 @@ export interface CategoriaRow {
   solo_femenil: boolean;
   sorteo_realizado: boolean;
   sorteo_en: string | null;
+  oculta: boolean;
 }
 
 export interface JugadorResumen {

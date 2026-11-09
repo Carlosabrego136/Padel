@@ -38,8 +38,13 @@ CREATE TABLE IF NOT EXISTS categorias (
   superior_id      smallint REFERENCES categorias(id),
   solo_femenil     boolean NOT NULL DEFAULT false,
   sorteo_realizado boolean NOT NULL DEFAULT false,
-  sorteo_en        timestamptz
+  sorteo_en        timestamptz,
+  oculta           boolean NOT NULL DEFAULT false
 );
+
+-- Oculta la categoría del ranking público (sigue existiendo para inscripciones, sorteo, etc.);
+-- se puede mostrar/ocultar desde Configuración en el panel de administrador.
+ALTER TABLE categorias ADD COLUMN IF NOT EXISTS oculta boolean NOT NULL DEFAULT false;
 
 INSERT INTO categorias (id, slug, nombre, orden, superior_id, solo_femenil) VALUES
   (1, 'libre',   'Libre',          1, NULL, false),

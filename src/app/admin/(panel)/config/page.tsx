@@ -1,5 +1,5 @@
 import { requireAdminPage } from '@/lib/auth-page';
-import { adminGetConfig } from '@/lib/queries';
+import { adminGetConfig, getCategorias } from '@/lib/queries';
 import ConfigClient from './ConfigClient';
 
 export const metadata = { title: 'Configuración' };
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function ConfigPage() {
   await requireAdminPage();
-  const config = await adminGetConfig();
+  const [config, categorias] = await Promise.all([adminGetConfig(), getCategorias()]);
 
   return (
     <div>
@@ -15,7 +15,7 @@ export default async function ConfigPage() {
       <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem', marginBottom: 24 }}>
         Parámetros generales del ranking. Los cambios quedan registrados en auditoría.
       </p>
-      <ConfigClient config={config} />
+      <ConfigClient config={config} categorias={categorias} />
     </div>
   );
 }

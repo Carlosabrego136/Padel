@@ -282,6 +282,31 @@ export async function actualizarPagoPareja(
 }
 
 /**
+ * Muestra u oculta una categoría en el ranking público. No la elimina ni afecta inscripciones,
+ * sorteo, partidos ni nada más: solo controla si aparece en la página pública de Ranking.
+ */
+export async function setCategoriaOculta(categoriaId: number, oculta: boolean, actor: Actor): Promise<void> {
+  await withAdminTx(actor, async (tx) => {
+    const r = await tx.query<{ id: number; nombre: string; oculta: boolean }>(
+      "SELECT id, nombre, oculta FROM categorias WHERE id = $1 FOR UPDATE",
+      [categoriaId],
+    );
+    const categoria = r.rows[0];
+    if (!categoria) throw notFound('Categoría no encontrada');
+
+    await tx.query(`UPDATE categorias SET oculta = $2 WHERE id = $1`, [categoriaId, oculta]);
+
+    await tx.audit({
+      accion: 'actualizar_oculta_categoria',
+      entidad: 'categoria',
+      entidadId: String(categoriaId),
+      antes: { oculta: categoria.oculta },
+      despues: { oculta },
+    });
+  });
+}
+
+/**
  * Sube o reemplaza la foto de un jugador desde el panel admin — por ejemplo cuando
  * el jugador no subió la suya al inscribirse y el club se la agrega manualmente.
  */
