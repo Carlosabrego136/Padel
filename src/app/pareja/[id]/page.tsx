@@ -163,14 +163,23 @@ export default async function ParejaPage({ params }: Props) {
 
             {/* Esta semana no le tocó reto a esta pareja (sobrante de su categoría) */}
             {sinRetoEstaSemana && (
-              <div className="card" style={{ marginBottom: 24, padding: 20 }}>
+              <div
+                className="card"
+                style={{
+                  marginBottom: 24,
+                  padding: 20,
+                  background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-border, var(--color-accent)))',
+                  border: 'none',
+                  color: 'var(--color-on-accent)',
+                }}
+              >
                 <p
                   style={{
                     fontSize: '0.72rem',
                     fontWeight: 800,
                     letterSpacing: '0.06em',
                     textTransform: 'uppercase',
-                    color: 'var(--color-text-muted)',
+                    opacity: 0.85,
                     margin: '0 0 8px',
                   }}
                 >
