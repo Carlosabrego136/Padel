@@ -253,8 +253,8 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
           <div className="rule-card__sub">
             <p className="rule-card__sub-title">Torneo final</p>
             <p>
-              Al terminar la temporada, el club podrá organizar un torneo especial con las mejores parejas de cada
-              categoría.
+              Al terminar la temporada, el club organizará un torneo especial en el que clasifican las
+              <strong> primeras ocho parejas</strong> de cada categoría, según su posición en el ranking.
             </p>
           </div>
         </>
