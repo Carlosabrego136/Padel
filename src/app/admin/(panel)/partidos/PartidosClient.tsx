@@ -15,6 +15,8 @@ interface RetoGenerado {
   posRetadora: number;
   posRetada: number;
   partidoId: string;
+  tipo?: 'reto' | 'ascenso';
+  categoriaRetadaId?: number;
 }
 
 interface RetoOmitido {
@@ -264,7 +266,16 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
               <ul style={{ margin: 0, paddingLeft: 18, fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
                 {resumenGeneracion.creados.map((r) => (
                   <li key={r.partidoId}>
-                    {nombreCategoria(r.categoriaId)}: lugar {r.posRetadora} reta a lugar {r.posRetada}
+                    {r.tipo === 'ascenso' ? (
+                      <>
+                        Ascenso: 1er lugar de {nombreCategoria(r.categoriaId)} reta a lugar {r.posRetada} de{' '}
+                        {nombreCategoria(r.categoriaRetadaId ?? r.categoriaId)}
+                      </>
+                    ) : (
+                      <>
+                        {nombreCategoria(r.categoriaId)}: lugar {r.posRetadora} reta a lugar {r.posRetada}
+                      </>
+                    )}
                   </li>
                 ))}
               </ul>

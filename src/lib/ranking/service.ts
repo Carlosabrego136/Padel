@@ -814,6 +814,11 @@ export interface RetoGenerado {
   posRetadora: number;
   posRetada: number;
   partidoId: string;
+  /** 'ascenso' cuando el 1er lugar de una categoría retó al último de la categoría superior
+   * porque se quedaba sin cruce esta semana (ver generarRetosSemana). 'reto' en el caso normal. */
+  tipo?: 'reto' | 'ascenso';
+  /** Solo presente en 'ascenso': la categoría de la pareja retada (la superior). */
+  categoriaRetadaId?: number;
 }
 
 export interface RetoOmitido {
@@ -830,14 +835,24 @@ export interface GenerarRetosResultado {
 
 /**
  * Genera en bloque los retos de la semana para TODAS las categorías: cada pareja (salvo el 1er
- * lugar de cada categoría, que no tiene a quién retar arriba) intenta retar a la que está
- * exactamente una posición arriba, en el orden del reglamento. Reutiliza crearPartido() pareja por
- * pareja (misma validación, mismo registro de auditoría por partido creado), así que es seguro
- * ejecutarlo más de una vez: una pareja que ya tiene partido esta semana simplemente se omite, sin
- * duplicar nada. Por el límite de "un solo partido por semana por pareja" ya existente, las parejas
- * quedan acomodadas solas en bloques (lugar 2 reta a 1, lugar 4 reta a 3, lugar 6 reta a 5, …); si
- * una categoría tiene número impar de parejas, la última se queda sin partido esa semana (al cerrar
- * la jornada, el motor ya la baja una posición por inactividad, como marca el reglamento).
+ * lugar de cada categoría, que no tiene a quién retar arriba dentro de su propia categoría)
+ * intenta retar a la que está exactamente una posición arriba, en el orden del reglamento.
+ * Reutiliza crearPartido() pareja por pareja (misma validación, mismo registro de auditoría por
+ * partido creado), así que es seguro ejecutarlo más de una vez: una pareja que ya tiene partido
+ * esta semana simplemente se omite, sin duplicar nada.
+ *
+ * Cada semana se alterna el sentido en que se arman los cruces dentro de cada categoría (de arriba
+ * hacia abajo una semana, al revés la siguiente), para que con el tiempo a todas las parejas les
+ * toque tanto defender su lugar como retar hacia arriba, y para que no sea siempre la misma
+ * posición la que se queda sin cruce cuando la categoría tiene número impar de parejas.
+ *
+ * Cuando, por ese sentido alternado, el 1er lugar de una categoría se queda sin cruce esa semana,
+ * en vez de dejarlo descansar se le genera automáticamente un partido de ASCENSO contra el último
+ * lugar de la categoría superior (mismo mecanismo de ascenso ya existente, solo que automático).
+ * Si eso deja sin cruce al último lugar de esa categoría superior, el efecto se encadena hacia
+ * arriba de la misma manera, categoría por categoría, hasta la más alta de la cadena (o hasta que
+ * la categoría superior no tenga parejas, en cuyo caso el 1er lugar de ahí sí descansa, sin bajar
+ * de posición por eso). Femenil no participa de esta cadena (no tiene categoría superior).
  */
 export async function generarRetosSemana(jornadaId: number, actor: Actor): Promise<GenerarRetosResultado> {
   if (!Number.isInteger(jornadaId) || jornadaId < 1) throw badRequest('Jornada no válida');
@@ -849,11 +864,8 @@ export async function generarRetosSemana(jornadaId: number, actor: Actor): Promi
   if (!jornadaR.rows[0]) throw notFound('Jornada no encontrada');
   if (jornadaR.rows[0].estado !== 'programada') throw conflict('La jornada ya está cerrada');
 
-  // Cada semana se alterna el sentido en que se arman los cruces, para que con el tiempo a todas
-  // las parejas les toque tanto defender su lugar como retar hacia arriba, y para que no sea
-  // siempre la misma posición (la última) la que se queda sin cruce cuando la categoría tiene
-  // número impar de parejas. Semanas de número par: de abajo hacia arriba. Se usa el número de
-  // jornada (y si no hay, el id) para que el sentido sea predecible y no dependa de quién lo corra.
+  // Cada semana se alterna el sentido en que se arman los cruces. Se usa el número de jornada (y
+  // si no hay, el id) para que el sentido sea predecible y no dependa de quién lo corra.
   const numeroJornada = jornadaR.rows[0].numero ?? jornadaId;
   const sentidoInvertido = numeroJornada % 2 === 0;
 
@@ -871,17 +883,43 @@ export async function generarRetosSemana(jornadaId: number, actor: Actor): Promi
     porCategoria.set(p.categoria_id, arr);
   }
 
+  // Metadatos de categorías (orden y a cuál categoría superior conecta cada una), para procesar
+  // de la categoría más baja hacia la más alta: así, cuando el 1er lugar de una sube en cadena
+  // (ascenso automático), la categoría superior ya "sabe" que su último lugar está ocupado antes
+  // de armar sus propios cruces normales.
+  const categoriasMetaR = await query<{ id: number; orden: number; superior_id: number | null }>(
+    `SELECT id, orden, superior_id FROM categorias ORDER BY orden DESC`,
+    [],
+  );
+  const superiorIdPorCategoria = new Map(categoriasMetaR.rows.map((c) => [c.id, c.superior_id]));
+  const ordenProcesamiento = categoriasMetaR.rows.map((c) => c.id).filter((id) => porCategoria.has(id));
+
+  // Partidos ya existentes esta jornada (de una corrida anterior del mismo botón), para que la
+  // detección de "quién ya tiene partido" sea correcta también en una segunda corrida.
+  const existentesR = await query<{ retadora_id: string; retada_id: string }>(
+    `SELECT retadora_id, retada_id FROM partidos WHERE jornada_id = $1 AND estado <> 'cancelado'`,
+    [jornadaId],
+  );
+  const ocupados = new Set<string>();
+  for (const p of existentesR.rows) {
+    ocupados.add(p.retadora_id);
+    ocupados.add(p.retada_id);
+  }
+
   const creados: RetoGenerado[] = [];
   const omitidos: RetoOmitido[] = [];
   let iteraciones = 0;
 
-  for (const [categoriaId, parejas] of porCategoria) {
-    // La posición 1 no tiene a quién retar arriba; los índices posibles de retadora van de 1 en
-    // adelante (posición 2 en adelante). El sentido en que se recorren decide quién se queda sin
-    // cruce cuando la categoría tiene número impar de parejas: de arriba hacia abajo dentro de la
-    // temporada (índices crecientes) deja sin cruce a la última; invertido (índices decrecientes)
-    // deja sin cruce a la primera. El resultado final (quién reta a quién) es el mismo de siempre;
-    // solo cambia el orden en que se van tomando los cruces disponibles.
+  for (const categoriaId of ordenProcesamiento) {
+    const parejas = porCategoria.get(categoriaId)!;
+
+    // La posición 1 no tiene a quién retar arriba dentro de su propia categoría; los índices
+    // posibles de retadora van de 1 en adelante (posición 2 en adelante). El sentido en que se
+    // recorren decide quién se queda sin cruce normal cuando la categoría tiene número impar de
+    // parejas (o cuando su último lugar ya está ocupado por un ascenso entrante): de arriba hacia
+    // abajo (índices crecientes) deja sin cruce a la última; invertido (índices decrecientes) deja
+    // sin cruce a la primera. El resultado final (quién reta a quién) es el mismo de siempre; solo
+    // cambia el orden en que se van tomando los cruces disponibles.
     const indices: number[] = [];
     for (let i = 1; i < parejas.length; i++) indices.push(i);
     if (sentidoInvertido) indices.reverse();
@@ -893,6 +931,8 @@ export async function generarRetosSemana(jornadaId: number, actor: Actor): Promi
       const retadora = parejas[i];
       try {
         const r = await crearPartido({ tipo: 'reto', retadoraId: retadora.id, jornadaId }, actor);
+        ocupados.add(retadora.id);
+        ocupados.add(r.retadaId);
         creados.push({
           categoriaId,
           retadoraId: retadora.id,
@@ -900,10 +940,42 @@ export async function generarRetosSemana(jornadaId: number, actor: Actor): Promi
           posRetadora: retadora.posicion,
           posRetada: parejas[i - 1].posicion,
           partidoId: r.partidoId,
+          tipo: 'reto',
         });
       } catch (err) {
         const motivo = err instanceof Error ? err.message : 'Error desconocido';
         omitidos.push({ categoriaId, parejaId: retadora.id, posicion: retadora.posicion, motivo });
+      }
+    }
+
+    // Si el sentido de esta semana deja al 1er lugar sin cruce, en vez de que descanse, se intenta
+    // un ascenso automático contra el último lugar de la categoría superior.
+    const primerLugar = parejas.find((p) => p.posicion === 1);
+    if (sentidoInvertido && primerLugar && !ocupados.has(primerLugar.id)) {
+      const superiorId = superiorIdPorCategoria.get(categoriaId);
+      if (superiorId != null) {
+        iteraciones++;
+        if (iteraciones > MAX_LOOP) throw new Error('Límite de generación de retos excedido');
+        try {
+          const r = await crearPartido({ tipo: 'ascenso', retadoraId: primerLugar.id, jornadaId }, actor);
+          ocupados.add(primerLugar.id);
+          ocupados.add(r.retadaId);
+          const parejasSuperior = porCategoria.get(superiorId);
+          const posRetada = parejasSuperior?.find((p) => p.id === r.retadaId)?.posicion ?? 0;
+          creados.push({
+            categoriaId,
+            retadoraId: primerLugar.id,
+            retadaId: r.retadaId,
+            posRetadora: 1,
+            posRetada,
+            partidoId: r.partidoId,
+            tipo: 'ascenso',
+            categoriaRetadaId: superiorId,
+          });
+        } catch (err) {
+          const motivo = err instanceof Error ? err.message : 'Error desconocido';
+          omitidos.push({ categoriaId, parejaId: primerLugar.id, posicion: 1, motivo });
+        }
       }
     }
   }
