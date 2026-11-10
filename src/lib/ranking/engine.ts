@@ -5,19 +5,23 @@
  *
  * Reglas del reglamento/convocatoria:
  *  1. Una pareja solo puede retar a la que está una posición arriba.
- *  2. Ganar el reto: sube una posición. Perder: baja una posición.
+ *  2. Ganar el reto: la retadora sube una posición y la retada baja una. Si la retadora pierde
+ *     (la retada defendió su lugar), NINGUNA de las dos cambia de posición: solo te mueves hacia
+ *     arriba si ganas al retar; perder un reto nunca te baja de lugar por sí solo.
  *  3. La pareja que no juega ningún partido en la semana baja una posición — salvo que nunca se
  *     le haya asignado partido esa semana (p. ej. es la pareja sobrante por número impar de
  *     parejas en su categoría): en ese caso se queda exactamente en su lugar, porque no jugar
  *     no fue su culpa. Si sí tenía partido asignado y no lo jugó, sigue bajando como siempre.
  *  4. No se pueden saltar lugares.
  *  5. Ascenso: el 1er lugar reta al último de la categoría superior; si gana, ocupa el último
- *     lugar de la superior y el perdedor pasa al primer lugar de la inferior.
+ *     lugar de la superior y el perdedor pasa al primer lugar de la inferior; si pierde, ninguna
+ *     de las dos cambia (mismo principio que la regla 2).
  *
  * Cómo se resuelven los movimientos (todos SIMULTÁNEOS, con el ranking congelado al inicio de la
  * jornada, así el resultado no depende del orden en que se capturaron los partidos):
- *   - Cada pareja recibe un movimiento neto: retadora que gana −1, retadora que pierde +1,
- *     retada que pierde +1, retada que gana 0, inactiva +1 (el neto se limita a −1/+1).
+ *   - Cada pareja recibe un movimiento neto: retadora que gana −1, retada que pierde +1,
+ *     inactiva +1 (el neto se limita a −1/+1). La retadora que pierde NO recibe movimiento: un
+ *     reto perdido como retadora no tiene ningún efecto en la posición de nadie.
  *   - Las que suben ocupan exactamente su lugar de arriba (si ganas, subes).
  *   - Las que bajan ocupan el lugar de abajo si está libre; si ese lugar ya lo ganó alguien que
  *     sube, conservan el suyo (siempre se respeta primero al que sube).
@@ -94,7 +98,7 @@ export function aplicarSemana(input: SemanaInput): SemanaOutput {
       motivos.set(r.retadoraId, 'victoria');
       if (motivos.get(r.retadaId) !== 'victoria') motivos.set(r.retadaId, 'derrota');
     } else {
-      sumar(r.retadoraId, +1);
+      // La retadora pierde: no baja de posición, se queda igual (solo se sube al ganar un reto).
       if (motivos.get(r.retadoraId) !== 'victoria') motivos.set(r.retadoraId, 'derrota');
     }
   }

@@ -12,17 +12,19 @@ describe('aplicarSemana · retos', () => {
     expect(r.motivos.get('B')).toBe('derrota');
   });
 
-  it('si la retadora pierde baja un lugar y la retada conserva el suyo', () => {
+  it('si la retadora pierde, ninguna de las dos cambia de posición', () => {
     const r = aplicarSemana({
       orden: ['A', 'B', 'C', 'D', 'E'],
       retos: [reto('C', 'B', 'B'), reto('E', 'D', 'D')],
       jugaron: set('B', 'C', 'D', 'E'),
       eximirPrimerLugar: true,
     });
-    expect(r.orden).toEqual(['A', 'B', 'D', 'C', 'E']);
+    expect(r.orden).toEqual(['A', 'B', 'C', 'D', 'E']);
+    expect(r.motivos.get('C')).toBe('derrota');
+    expect(r.motivos.get('E')).toBe('derrota');
   });
 
-  it('la última pareja que pierde como retadora no puede bajar más', () => {
+  it('la última pareja que pierde como retadora se queda en su lugar (no baja)', () => {
     const r = aplicarSemana({ orden: ['A', 'B', 'C'], retos: [reto('C', 'B', 'B')], jugaron: set('B', 'C'), eximirPrimerLugar: true });
     expect(r.orden).toEqual(['A', 'B', 'C']);
   });
