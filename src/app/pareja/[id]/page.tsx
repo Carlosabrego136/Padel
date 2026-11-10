@@ -43,6 +43,11 @@ export default async function ParejaPage({ params }: Props) {
       : partidoActual.retadora_nombres
     : null;
   const esRetadoraActual = partidoActual?.retadora_id === pareja.id;
+  const telefonoRival = partidoActual
+    ? partidoActual.retadora_id === pareja.id
+      ? partidoActual.retada_telefono
+      : partidoActual.retadora_telefono
+    : null;
   const fechaJuego = partidoActual?.fecha_juego
     ? new Date(partidoActual.fecha_juego).toLocaleDateString('es-MX', {
         weekday: 'long',
@@ -115,6 +120,11 @@ export default async function ParejaPage({ params }: Props) {
                   </span>
                   <span style={{ fontSize: '1.3rem', fontWeight: 800 }}>{rivalActual}</span>
                 </div>
+                {telefonoRival && (
+                  <p style={{ fontSize: '0.85rem', fontWeight: 600, margin: '0 0 10px', opacity: 0.95 }}>
+                    📞 {telefonoRival}
+                  </p>
+                )}
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                   <span
                     style={{

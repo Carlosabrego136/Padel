@@ -87,6 +87,8 @@ export interface PartidoConNombres {
   creado_en: string;
   retadora_nombres: string;
   retada_nombres: string;
+  retadora_telefono: string | null;
+  retada_telefono: string | null;
 }
 
 export interface MovimientoRow {
@@ -272,7 +274,9 @@ const PARTIDO_NOMBRES_SELECT = `
   p2.fecha_juego, p2.cancha, p2.estado,
   p2.sets, p2.ganadora_id, p2.nota, p2.jugado_en, p2.creado_en,
   (SELECT string_agg(j3.nombre, ' / ' ORDER BY j3.creado_en) FROM jugadores j3 WHERE j3.pareja_id = p2.retadora_id AND j3.activo) AS retadora_nombres,
-  (SELECT string_agg(j4.nombre, ' / ' ORDER BY j4.creado_en) FROM jugadores j4 WHERE j4.pareja_id = p2.retada_id AND j4.activo) AS retada_nombres`;
+  (SELECT string_agg(j4.nombre, ' / ' ORDER BY j4.creado_en) FROM jugadores j4 WHERE j4.pareja_id = p2.retada_id AND j4.activo) AS retada_nombres,
+  (SELECT pr.telefono_contacto FROM parejas pr WHERE pr.id = p2.retadora_id) AS retadora_telefono,
+  (SELECT pd.telefono_contacto FROM parejas pd WHERE pd.id = p2.retada_id) AS retada_telefono`;
 
 // ============================================================================
 // Consultas PÚBLICAS
