@@ -842,12 +842,20 @@ export interface GenerarRetosResultado {
 export async function generarRetosSemana(jornadaId: number, actor: Actor): Promise<GenerarRetosResultado> {
   if (!Number.isInteger(jornadaId) || jornadaId < 1) throw badRequest('Jornada no válida');
 
-  const jornadaR = await query<{ id: number; estado: string }>(
-    'SELECT id, estado FROM jornadas WHERE id = $1',
+  const jornadaR = await query<{ id: number; estado: string; numero: number | null }>(
+    'SELECT id, estado, numero FROM jornadas WHERE id = $1',
     [jornadaId],
   );
   if (!jornadaR.rows[0]) throw notFound('Jornada no encontrada');
   if (jornadaR.rows[0].estado !== 'programada') throw conflict('La jornada ya está cerrada');
+
+  // Cada semana se alterna el sentido en que se arman los cruces, para que con el tiempo a todas
+  // las parejas les toque tanto defender su lugar como retar hacia arriba, y para que no sea
+  // siempre la misma posición (la última) la que se queda sin cruce cuando la categoría tiene
+  // número impar de parejas. Semanas de número par: de abajo hacia arriba. Se usa el número de
+  // jornada (y si no hay, el id) para que el sentido sea predecible y no dependa de quién lo corra.
+  const numeroJornada = jornadaR.rows[0].numero ?? jornadaId;
+  const sentidoInvertido = numeroJornada % 2 === 0;
 
   const parejasR = await query<{ id: string; categoria_id: number; posicion: number }>(
     `SELECT id, categoria_id, posicion FROM parejas
@@ -868,8 +876,17 @@ export async function generarRetosSemana(jornadaId: number, actor: Actor): Promi
   let iteraciones = 0;
 
   for (const [categoriaId, parejas] of porCategoria) {
-    // La posición 1 no tiene a quién retar arriba; se empieza desde la posición 2.
-    for (let i = 1; i < parejas.length; i++) {
+    // La posición 1 no tiene a quién retar arriba; los índices posibles de retadora van de 1 en
+    // adelante (posición 2 en adelante). El sentido en que se recorren decide quién se queda sin
+    // cruce cuando la categoría tiene número impar de parejas: de arriba hacia abajo dentro de la
+    // temporada (índices crecientes) deja sin cruce a la última; invertido (índices decrecientes)
+    // deja sin cruce a la primera. El resultado final (quién reta a quién) es el mismo de siempre;
+    // solo cambia el orden en que se van tomando los cruces disponibles.
+    const indices: number[] = [];
+    for (let i = 1; i < parejas.length; i++) indices.push(i);
+    if (sentidoInvertido) indices.reverse();
+
+    for (const i of indices) {
       iteraciones++;
       if (iteraciones > MAX_LOOP) throw new Error('Límite de generación de retos excedido');
 
@@ -1089,6 +1106,21 @@ export async function cerrarJornada(jornadaId: number, actor: Actor): Promise<vo
       [jornadaId],
     );
 
+    // 5b. Parejas que tuvieron partido asignado esta jornada (cualquier estado, incluido el que
+    // quedó programado y nunca se jugó). Sirve para distinguir, más abajo, a quien de plano nunca
+    // tuvo rival asignado (por ser la pareja sobrante de una categoría con número impar) — a esa
+    // no se le debe bajar posición por "inactividad", porque no fue su culpa. Quien sí tenía
+    // partido asignado y no lo jugó, en cambio, sigue bajando como siempre.
+    const asignadosR = await tx.query<{ retadora_id: string; retada_id: string }>(
+      `SELECT retadora_id, retada_id FROM partidos WHERE jornada_id = $1`,
+      [jornadaId],
+    );
+    const tuvoPartidoAsignado = new Set<string>();
+    for (const p of asignadosR.rows) {
+      tuvoPartidoAsignado.add(p.retadora_id);
+      tuvoPartidoAsignado.add(p.retada_id);
+    }
+
     // Partidos de reto por categoría
     const retosPorCat = new Map<number, RetoResuelto[]>();
     const ascensos: AscensoResuelto[] = [];
@@ -1140,11 +1172,19 @@ export async function cerrarJornada(jornadaId: number, actor: Actor): Promise<vo
         if (jugaron.has(id)) jugaronCat.add(id);
       }
 
+      // Parejas de esta categoría que nunca tuvieron partido asignado esta jornada (p. ej. la
+      // sobrante por número impar): no bajan por inactividad.
+      const exentosCat = new Set<string>();
+      for (const id of orden) {
+        if (!tuvoPartidoAsignado.has(id)) exentosCat.add(id);
+      }
+
       const resultado = aplicarSemana({
         orden,
         retos,
         jugaron: jugaronCat,
         eximirPrimerLugar,
+        exentosInactividad: exentosCat,
       });
 
       ordenesNuevos.set(cat.id, resultado.orden);

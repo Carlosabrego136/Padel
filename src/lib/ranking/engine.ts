@@ -6,7 +6,10 @@
  * Reglas del reglamento/convocatoria:
  *  1. Una pareja solo puede retar a la que está una posición arriba.
  *  2. Ganar el reto: sube una posición. Perder: baja una posición.
- *  3. La pareja que no juega ningún partido en la semana baja una posición.
+ *  3. La pareja que no juega ningún partido en la semana baja una posición — salvo que nunca se
+ *     le haya asignado partido esa semana (p. ej. es la pareja sobrante por número impar de
+ *     parejas en su categoría): en ese caso se queda exactamente en su lugar, porque no jugar
+ *     no fue su culpa. Si sí tenía partido asignado y no lo jugó, sigue bajando como siempre.
  *  4. No se pueden saltar lugares.
  *  5. Ascenso: el 1er lugar reta al último de la categoría superior; si gana, ocupa el último
  *     lugar de la superior y el perdedor pasa al primer lugar de la inferior.
@@ -40,6 +43,13 @@ export interface SemanaInput {
   jugaron: ReadonlySet<PairId>;
   /** Si es true, el 1er lugar no baja por inactividad (no tiene a quién retar hacia arriba). */
   eximirPrimerLugar: boolean;
+  /**
+   * Parejas que no bajan por inactividad aunque no hayan jugado, porque nunca se les asignó
+   * partido esa semana (p. ej. la pareja sobrante cuando la categoría tiene número impar de
+   * parejas). No confundir con una pareja que sí tenía partido programado y no lo jugó: esa
+   * sigue bajando como siempre. Opcional por compatibilidad con llamadas existentes.
+   */
+  exentosInactividad?: ReadonlySet<PairId>;
 }
 
 export type MotivoMovimiento = 'victoria' | 'derrota' | 'inactividad' | 'ajuste' | 'sin_cambio';
@@ -93,6 +103,7 @@ export function aplicarSemana(input: SemanaInput): SemanaOutput {
   for (const id of inicio) {
     if (input.jugaron.has(id)) continue;
     if (input.eximirPrimerLugar && id === primero) continue;
+    if (input.exentosInactividad?.has(id)) continue;
     sumar(id, +1);
     motivos.set(id, 'inactividad');
   }

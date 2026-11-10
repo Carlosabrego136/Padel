@@ -85,6 +85,39 @@ describe('aplicarSemana · inactividad', () => {
     expect(r.orden).toEqual(['A', 'B', 'C']);
   });
 
+  it('una pareja exenta por no tener partido asignado no baja, aunque no haya jugado', () => {
+    const r = aplicarSemana({
+      orden: ['A', 'B', 'C', 'D'],
+      retos: [],
+      jugaron: set('A', 'B'),
+      eximirPrimerLugar: true,
+      exentosInactividad: set('C', 'D'),
+    });
+    expect(r.orden).toEqual(['A', 'B', 'C', 'D']);
+    expect(r.motivos.get('C')).toBe('sin_cambio');
+    expect(r.motivos.get('D')).toBe('sin_cambio');
+  });
+
+  it('exento por no tener partido asignado, pero una vecina sí baja por inactividad real', () => {
+    // C nunca tuvo partido asignado (exenta); D sí tenía partido pero no lo jugó (baja normal).
+    const r = aplicarSemana({
+      orden: ['A', 'B', 'C', 'D', 'E'],
+      retos: [],
+      jugaron: set('A', 'B', 'E'),
+      eximirPrimerLugar: true,
+      exentosInactividad: set('C'),
+    });
+    expect(r.motivos.get('C')).toBe('sin_cambio');
+    expect(r.motivos.get('D')).toBe('inactividad');
+    expect(r.orden.indexOf('C')).toBe(2);
+    expect(r.orden.indexOf('D')).toBeGreaterThan(2);
+  });
+
+  it('sin exentosInactividad (undefined) se comporta igual que antes', () => {
+    const r = aplicarSemana({ orden: ['A', 'B', 'C', 'D'], retos: [], jugaron: set('A', 'B', 'D'), eximirPrimerLugar: true });
+    expect(r.orden).toEqual(['A', 'B', 'D', 'C']);
+  });
+
   it('categoría vacía o de una pareja no falla', () => {
     expect(aplicarSemana({ orden: [], retos: [], jugaron: set(), eximirPrimerLugar: true }).orden).toEqual([]);
     expect(aplicarSemana({ orden: ['A'], retos: [], jugaron: set(), eximirPrimerLugar: false }).orden).toEqual(['A']);
