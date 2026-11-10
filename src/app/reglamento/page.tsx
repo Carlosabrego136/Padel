@@ -72,10 +72,10 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
             <div className="rule-card__example">
               <p className="rule-card__example-label">Ejemplo</p>
               <p>
-                Si tu pareja está en el <strong>lugar 5</strong>, solo puedes retar a la pareja del{' '}
-                <strong>lugar 4</strong> (nunca a otra). Si ganas, subes al lugar 4. Pero también puede pasar que,
-                esa misma semana, te toque que te rete la pareja del <strong>lugar 6</strong>: en ese caso no
-                eliges jugar, simplemente te toca defender tu lugar.
+                Si tu pareja está en el <strong>lugar 5</strong>, cada semana te toca una sola cosa, nunca las dos:
+                o bien te toca retar tú a la pareja del <strong>lugar 4</strong> (nunca a otra), o bien te toca que
+                te rete la pareja del <strong>lugar 6</strong> y simplemente defiendes tu lugar. Nunca atacas y
+                defiendes en la misma semana.
               </p>
             </div>
           </div>
