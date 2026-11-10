@@ -82,9 +82,9 @@ function construirReglas(cfg: Map<string, string>): Regla[] {
           <div className="rule-card__sub">
             <p className="rule-card__sub-title">Resultado del partido</p>
             <p>
-              Si ganas el partido, subes una posición y el rival baja una. Si retaste hacia arriba y perdiste, no
-              pasa nada: te quedas exactamente en tu mismo lugar, ninguna de las dos parejas se mueve. No se pueden
-              saltar lugares.
+              Si ganas el partido que te tocó jugar, subes una posición y tu rival baja una. Si tú fuiste quien
+              retó y perdiste, no pasa nada: te quedas exactamente en tu mismo lugar, ninguna de las dos parejas se
+              mueve. No se pueden saltar lugares.
             </p>
             <div className="rule-card__example">
               <p className="rule-card__example-label">Ejemplo</p>
