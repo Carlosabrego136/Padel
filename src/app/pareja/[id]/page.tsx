@@ -33,6 +33,24 @@ export default async function ParejaPage({ params }: Props) {
   const catNombre = categorias.find((c) => c.id === pareja.categoria_id)?.nombre ?? `Categoría ${pareja.categoria_id}`;
   const nombres = pareja.jugadores.map((j) => j.nombre).join(' / ');
 
+  // El partido de esta semana, si ya está armado: lo más importante que una pareja quiere ver al
+  // entrar, así que se muestra hasta arriba (antes incluso de las estadísticas), no hay que
+  // buscarlo ni bajar a la tabla de "Últimos partidos".
+  const partidoActual = pareja.partidos.find((m) => m.estado === 'programado');
+  const rivalActual = partidoActual
+    ? partidoActual.retadora_id === pareja.id
+      ? partidoActual.retada_nombres
+      : partidoActual.retadora_nombres
+    : null;
+  const esRetadoraActual = partidoActual?.retadora_id === pareja.id;
+  const fechaJuego = partidoActual?.fecha_juego
+    ? new Date(partidoActual.fecha_juego).toLocaleDateString('es-MX', {
+        weekday: 'long',
+        day: '2-digit',
+        month: 'short',
+      })
+    : null;
+
   return (
     <>
       <SiteHeader />
@@ -66,6 +84,62 @@ export default async function ParejaPage({ params }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* Partido de esta semana — lo primero que se ve, sin tener que buscarlo */}
+            {partidoActual && rivalActual && (
+              <div
+                className="card"
+                style={{
+                  marginBottom: 24,
+                  padding: 20,
+                  background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-border, var(--color-accent)))',
+                  border: 'none',
+                  color: 'var(--color-on-accent)',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    opacity: 0.85,
+                    margin: '0 0 8px',
+                  }}
+                >
+                  🏆 Tu partido de esta semana
+                </p>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap', marginBottom: 6 }}>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, opacity: 0.9 }}>
+                    {esRetadoraActual ? 'Retas a' : 'Te reta'}
+                  </span>
+                  <span style={{ fontSize: '1.3rem', fontWeight: 800 }}>{rivalActual}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      padding: '3px 10px',
+                      borderRadius: 999,
+                      background: 'rgba(255,255,255,0.22)',
+                    }}
+                  >
+                    {partidoActual.tipo === 'ascenso' ? 'Ascenso' : 'Reto'}
+                  </span>
+                  {fechaJuego ? (
+                    <span style={{ fontSize: '0.82rem', opacity: 0.95 }}>
+                      {fechaJuego}
+                      {partidoActual.cancha ? ` · Cancha ${partidoActual.cancha}` : ''}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: '0.82rem', opacity: 0.85 }}>
+                      Pónganse de acuerdo directamente con su rival para la fecha
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Estadísticas */}
             <div className="stats-card">
