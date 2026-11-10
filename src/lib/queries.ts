@@ -316,6 +316,19 @@ export async function getJornadaActual(tz: string): Promise<JornadaRow | null> {
   return r.rows[0] ?? null;
 }
 
+/** Si ya se armaron los retos de la semana para esta jornada (si existe al menos un partido ligado
+ * a ella). Se usa en la página pública de cada pareja para distinguir "todavía no se arman los
+ * retos de esta semana" (no decir nada) de "ya se armaron y a esta pareja no le tocó ninguno"
+ * (avisarle que no tiene reto esta semana, en vez de no mostrar nada). */
+export async function hayRetosGenerados(jornadaId: number): Promise<boolean> {
+  if (!Number.isInteger(jornadaId) || jornadaId < 1) return false;
+  const r = await query<{ existe: boolean }>(
+    `SELECT EXISTS(SELECT 1 FROM partidos WHERE jornada_id = $1) AS existe`,
+    [jornadaId],
+  );
+  return r.rows[0]?.existe ?? false;
+}
+
 export async function getPartidosJornada(jornadaId: number): Promise<PartidoConNombres[]> {
   if (!Number.isInteger(jornadaId) || jornadaId < 1) return [];
   const r = await query<PartidoConNombres>(

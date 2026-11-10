@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getPareja, getCategorias } from '@/lib/queries';
+import { getPareja, getCategorias, getJornadaActual, hayRetosGenerados } from '@/lib/queries';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
 
@@ -55,6 +55,16 @@ export default async function ParejaPage({ params }: Props) {
         month: 'short',
       })
     : null;
+
+  // Si esta semana ya se armaron los retos y a esta pareja no le tocó ninguno (es la sobrante de
+  // su categoría, por número impar de parejas), se avisa explícitamente en vez de no mostrar nada
+  // — así no parece que falta información.
+  const jornadaActual = await getJornadaActual('America/Mazatlan').catch(() => null);
+  const retosGenerados = jornadaActual ? await hayRetosGenerados(jornadaActual.id).catch(() => false) : false;
+  const tieneAlgunPartidoEstaJornada = jornadaActual
+    ? pareja.partidos.some((m) => m.jornada_id === jornadaActual.id)
+    : true;
+  const sinRetoEstaSemana = !!jornadaActual && retosGenerados && !tieneAlgunPartidoEstaJornada;
 
   return (
     <>
@@ -148,6 +158,27 @@ export default async function ParejaPage({ params }: Props) {
                     </span>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Esta semana no le tocó reto a esta pareja (sobrante de su categoría) */}
+            {sinRetoEstaSemana && (
+              <div className="card" style={{ marginBottom: 24, padding: 20 }}>
+                <p
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    color: 'var(--color-text-muted)',
+                    margin: '0 0 8px',
+                  }}
+                >
+                  Esta semana
+                </p>
+                <p style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>
+                  Esta semana no tienes reto asignado. No afecta tu posición: la conservas igual.
+                </p>
               </div>
             )}
 
