@@ -1443,8 +1443,8 @@ html[data-intro="done"] .hero__cta {
   flex-wrap: wrap;
   background-color: var(--color-bg-card);
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.86)),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200'%3E%3Crect x='6' y='6' width='388' height='188' rx='6' fill='none' stroke='%230fa3c2' stroke-width='4' stroke-opacity='0.9'/%3E%3Cline x1='6' y1='100' x2='394' y2='100' stroke='%230fa3c2' stroke-width='5' stroke-opacity='0.95' stroke-dasharray='3 5'/%3E%3Cline x1='6' y1='53' x2='394' y2='53' stroke='%230fa3c2' stroke-width='3' stroke-opacity='0.8'/%3E%3Cline x1='6' y1='147' x2='394' y2='147' stroke='%230fa3c2' stroke-width='3' stroke-opacity='0.8'/%3E%3Cline x1='200' y1='53' x2='200' y2='147' stroke='%230fa3c2' stroke-width='3' stroke-opacity='0.8'/%3E%3C/svg%3E");
+    linear-gradient(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.58)),
+    url("/img/match-card-court-mobile.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1475,8 +1475,8 @@ html[data-intro="done"] .hero__cta {
   border-radius: 999px;
   white-space: nowrap;
 }
-.match-card__type--reto { background: rgba(21, 188, 223, 0.12); color: var(--color-accent-border); }
-.match-card__type--ascenso { background: rgba(217, 119, 6, 0.14); color: var(--color-warning); }
+.match-card__type--reto { background: rgba(255, 255, 255, 0.82); color: var(--color-accent-border); box-shadow: 0 0 0 1px rgba(21, 188, 223, 0.25) inset; }
+.match-card__type--ascenso { background: rgba(255, 255, 255, 0.82); color: var(--color-warning); box-shadow: 0 0 0 1px rgba(217, 119, 6, 0.3) inset; }
 
 .match-card__main {
   flex: 1 1 140px;
@@ -1555,6 +1555,14 @@ html[data-intro="done"] .hero__cta {
   .match-card { padding: 12px 14px; gap: 10px; }
   .match-card__result { justify-content: flex-start; }
   .match-card__rival-name { font-size: 0.88rem; }
+}
+
+@media (min-width: 640px) {
+  .match-card {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.58)),
+      url("/img/match-card-court-desktop.jpg");
+  }
 }
 
 /* ---------- Admin layout --------------------------------------------------- */
