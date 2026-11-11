@@ -269,51 +269,50 @@ export default async function ParejaPage({ params }: Props) {
             {pareja.partidos.length > 0 && (
               <>
                 <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 12 }}>Últimos partidos</h2>
-                <div style={{ overflowX: 'auto', marginBottom: 32 }}>
-                  <table className="ranking-table" style={{ fontSize: '0.82rem' }}>
-                    <thead>
-                      <tr>
-                        <th>Tipo</th>
-                        <th>Rival</th>
-                        <th>Resultado</th>
-                        <th>Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pareja.partidos.map((m) => {
-                        const esRetadora = m.retadora_id === pareja.id;
-                        const rival = esRetadora ? m.retada_nombres : m.retadora_nombres;
-                        const gano = m.ganadora_id === pareja.id;
-                        const setsStr = Array.isArray(m.sets)
-                          ? (m.sets as { a: number; b: number }[]).map((s) =>
-                              esRetadora ? `${s.a}-${s.b}` : `${s.b}-${s.a}`,
-                            ).join(', ')
-                          : '';
-                        return (
-                          <tr key={m.id}>
-                            <td>
-                              <span className={`badge ${m.tipo === 'ascenso' ? 'badge-asc' : 'badge-reto'}`}>
-                                {m.tipo === 'ascenso' ? 'Ascenso' : 'Reto'}
+                <div className="match-list" style={{ marginBottom: 32 }}>
+                  {pareja.partidos.map((m) => {
+                    const esRetadora = m.retadora_id === pareja.id;
+                    const rival = esRetadora ? m.retada_nombres : m.retadora_nombres;
+                    const gano = m.ganadora_id === pareja.id;
+                    const jugado = m.estado === 'jugado';
+                    const sets = Array.isArray(m.sets) ? (m.sets as { a: number; b: number }[]) : [];
+                    return (
+                      <div
+                        key={m.id}
+                        className={`match-card ${jugado ? (gano ? 'match-card--win' : 'match-card--loss') : ''}`}
+                      >
+                        <span
+                          className={`match-card__type match-card__type--${m.tipo === 'ascenso' ? 'ascenso' : 'reto'}`}
+                        >
+                          {m.tipo === 'ascenso' ? 'Ascenso' : 'Reto'}
+                        </span>
+                        <div className="match-card__main">
+                          <p className="match-card__rival-label">Rival</p>
+                          <p className="match-card__rival-name">{rival}</p>
+                        </div>
+                        <div className="match-card__result">
+                          {jugado ? (
+                            <>
+                              <span className={`match-card__verdict match-card__verdict--${gano ? 'win' : 'loss'}`}>
+                                {gano ? 'Ganó' : 'Perdió'}
                               </span>
-                            </td>
-                            <td>{rival}</td>
-                            <td>
-                              {m.estado === 'jugado' ? (
-                                <span style={{ color: gano ? 'var(--color-success)' : 'var(--color-error)' }}>
-                                  {gano ? 'Ganó' : 'Perdió'} {setsStr && `(${setsStr})`}
-                                </span>
-                              ) : (
-                                <span style={{ color: 'var(--color-text-muted)' }}>—</span>
+                              {sets.length > 0 && (
+                                <div className="match-card__sets">
+                                  {sets.map((s, i) => (
+                                    <span key={i} className="score-chip">
+                                      {esRetadora ? `${s.a}-${s.b}` : `${s.b}-${s.a}`}
+                                    </span>
+                                  ))}
+                                </div>
                               )}
-                            </td>
-                            <td>
-                              <span className={`badge badge-${m.estado}`}>{m.estado}</span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                            </>
+                          ) : (
+                            <span className="match-card__verdict match-card__verdict--pending">{m.estado}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             )}
