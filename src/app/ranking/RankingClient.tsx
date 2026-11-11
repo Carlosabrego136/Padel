@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { CategoriaRow, ParejaRanking } from '@/lib/queries';
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
 }
 
 export default function RankingClient({ categorias, ranking }: Props) {
+  const router = useRouter();
   const [activa, setActiva] = useState(categorias[0]?.id ?? 0);
   const parejas = ranking[activa] ?? [];
 
@@ -58,7 +59,20 @@ export default function RankingClient({ categorias, ranking }: Props) {
             </thead>
             <tbody>
               {parejas.map((p, i) => (
-                <tr key={p.id}>
+                <tr
+                  key={p.id}
+                  className="ranking-row"
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Ver ${p.jugadores.map((j) => j.nombre).join(' / ') || 'pareja'}`}
+                  onClick={() => router.push(`/pareja/${p.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      router.push(`/pareja/${p.id}`);
+                    }
+                  }}
+                >
                   <td className="ranking-pos">{p.posicion ?? i + 1}</td>
                   <td>
                     <div className="ranking-pareja">
@@ -74,13 +88,21 @@ export default function RankingClient({ categorias, ranking }: Props) {
                           </span>
                         ))}
                       </span>
-                      <Link href={`/pareja/${p.id}`} className="ranking-link">
+                      <span className="ranking-link">
                         {p.jugadores.map((j) => j.nombre).join(' / ') || '—'}
-                      </Link>
+                      </span>
                       {p.mixta && <span className="badge badge-mix">Mixta</span>}
+                      {p.resultado_semana && (
+                        <span className={`ranking-badge ranking-badge--${p.resultado_semana === 'gano' ? 'win' : 'loss'}`}>
+                          {p.resultado_semana === 'gano' ? 'Ganó' : 'Perdió'}
+                        </span>
+                      )}
                     </div>
                   </td>
-                  <td style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                  <td
+                    style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     {p.acepta_publicar ? (
                       telefonosVisibles.has(p.id) ? (
                         <a href={`tel:${p.telefono_contacto}`} style={{ color: 'var(--color-accent)' }}>

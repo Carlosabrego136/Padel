@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { getCategorias, getRankingCategoria, type CategoriaRow } from '@/lib/queries';
+import { getCategorias, getRankingCategoria, getJornadaActual, type CategoriaRow } from '@/lib/queries';
 import SiteHeader from '@/components/SiteHeader';
 import SiteFooter from '@/components/SiteFooter';
 import RankingClient from './RankingClient';
@@ -19,9 +19,12 @@ export default async function RankingPage() {
     // La categoría marcada como "oculta" (desde Configuración, en el panel admin) no se muestra
     // en el ranking público — por ejemplo, mientras no tiene parejas inscritas todavía.
     categorias = (await getCategorias()).filter((c) => !c.oculta);
+    const jornadaActual = await getJornadaActual('America/Mazatlan').catch(() => null);
     // Pre-fetch ranking for all categories in parallel
     const results = await Promise.all(
-      categorias.map((c) => getRankingCategoria(c.id).then((r) => ({ id: c.id, data: r }))),
+      categorias.map((c) =>
+        getRankingCategoria(c.id, jornadaActual?.id ?? null).then((r) => ({ id: c.id, data: r })),
+      ),
     );
     for (const r of results) ranking[r.id] = r.data;
   } catch {

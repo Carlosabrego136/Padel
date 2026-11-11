@@ -55,6 +55,8 @@ export interface ParejaRanking {
   mixta: boolean;
   creada_en: string;
   jugadores: JugadorResumen[];
+  /** Resultado del partido de la jornada actual para esta pareja (null si no tiene o no se ha resuelto). */
+  resultado_semana: 'gano' | 'perdio' | null;
 }
 
 export interface JornadaRow {
@@ -292,15 +294,26 @@ export async function getCategorias(): Promise<CategoriaRow[]> {
   return r.rows;
 }
 
-export async function getRankingCategoria(categoriaId: number): Promise<ParejaRanking[]> {
+export async function getRankingCategoria(
+  categoriaId: number,
+  jornadaActualId: number | null = null,
+): Promise<ParejaRanking[]> {
   if (!Number.isInteger(categoriaId) || categoriaId < 1 || categoriaId > 6) return [];
   const r = await query<ParejaFlatRow>(
-    `SELECT ${PAREJA_COLS}, ${JUGADOR_COLS}
+    `SELECT ${PAREJA_COLS}, ${JUGADOR_COLS},
+       (SELECT CASE
+                 WHEN m.estado IN ('jugado', 'resuelto_club') AND m.ganadora_id = p.id THEN 'gano'
+                 WHEN m.estado IN ('jugado', 'resuelto_club') THEN 'perdio'
+                 ELSE NULL
+               END
+        FROM partidos m
+        WHERE m.jornada_id = $2 AND (m.retadora_id = p.id OR m.retada_id = p.id)
+        LIMIT 1) AS resultado_semana
      FROM parejas p
      LEFT JOIN jugadores j ON j.pareja_id = p.id AND j.activo
      WHERE p.estado = 'aprobada' AND p.categoria_id = $1
      ORDER BY p.posicion NULLS LAST, p.creada_en`,
-    [categoriaId],
+    [categoriaId, jornadaActualId],
   );
   return agruparJugadores<ParejaRanking>(r.rows);
 }
