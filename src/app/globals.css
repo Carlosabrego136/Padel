@@ -1441,7 +1441,13 @@ html[data-intro="done"] .hero__cta {
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  background: var(--color-bg-card);
+  background-color: var(--color-bg-card);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.86)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200'%3E%3Crect x='6' y='6' width='388' height='188' rx='6' fill='none' stroke='%230fa3c2' stroke-width='4' stroke-opacity='0.9'/%3E%3Cline x1='6' y1='100' x2='394' y2='100' stroke='%230fa3c2' stroke-width='5' stroke-opacity='0.95' stroke-dasharray='3 5'/%3E%3Cline x1='6' y1='53' x2='394' y2='53' stroke='%230fa3c2' stroke-width='3' stroke-opacity='0.8'/%3E%3Cline x1='6' y1='147' x2='394' y2='147' stroke='%230fa3c2' stroke-width='3' stroke-opacity='0.8'/%3E%3Cline x1='200' y1='53' x2='200' y2='147' stroke='%230fa3c2' stroke-width='3' stroke-opacity='0.8'/%3E%3C/svg%3E");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border: 1px solid var(--color-border);
   border-left: 4px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -1535,9 +1541,20 @@ html[data-intro="done"] .hero__cta {
   border: 1px solid var(--color-border-subtle);
 }
 
+.score-chip--default {
+  font-family: var(--font-sans);
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.68rem;
+  background: var(--color-bg-card);
+}
+
 @media (max-width: 520px) {
   .match-card { padding: 12px 14px; gap: 10px; }
   .match-card__result { justify-content: flex-start; }
+  .match-card__rival-name { font-size: 0.88rem; }
 }
 
 /* ---------- Admin layout --------------------------------------------------- */

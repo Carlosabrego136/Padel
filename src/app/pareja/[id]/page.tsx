@@ -274,12 +274,13 @@ export default async function ParejaPage({ params }: Props) {
                     const esRetadora = m.retadora_id === pareja.id;
                     const rival = esRetadora ? m.retada_nombres : m.retadora_nombres;
                     const gano = m.ganadora_id === pareja.id;
-                    const jugado = m.estado === 'jugado';
+                    const resuelto = m.estado === 'jugado' || m.estado === 'resuelto_club';
+                    const esDefault = m.estado === 'resuelto_club';
                     const sets = Array.isArray(m.sets) ? (m.sets as { a: number; b: number }[]) : [];
                     return (
                       <div
                         key={m.id}
-                        className={`match-card ${jugado ? (gano ? 'match-card--win' : 'match-card--loss') : ''}`}
+                        className={`match-card ${resuelto ? (gano ? 'match-card--win' : 'match-card--loss') : ''}`}
                       >
                         <span
                           className={`match-card__type match-card__type--${m.tipo === 'ascenso' ? 'ascenso' : 'reto'}`}
@@ -291,12 +292,12 @@ export default async function ParejaPage({ params }: Props) {
                           <p className="match-card__rival-name">{rival}</p>
                         </div>
                         <div className="match-card__result">
-                          {jugado ? (
+                          {resuelto ? (
                             <>
                               <span className={`match-card__verdict match-card__verdict--${gano ? 'win' : 'loss'}`}>
                                 {gano ? 'Ganó' : 'Perdió'}
                               </span>
-                              {sets.length > 0 && (
+                              {sets.length > 0 ? (
                                 <div className="match-card__sets">
                                   {sets.map((s, i) => (
                                     <span key={i} className="score-chip">
@@ -304,10 +305,14 @@ export default async function ParejaPage({ params }: Props) {
                                     </span>
                                   ))}
                                 </div>
-                              )}
+                              ) : esDefault ? (
+                                <span className="score-chip score-chip--default">Default</span>
+                              ) : null}
                             </>
                           ) : (
-                            <span className="match-card__verdict match-card__verdict--pending">{m.estado}</span>
+                            <span className="match-card__verdict match-card__verdict--pending">
+                              {m.estado === 'programado' ? 'Pendiente' : m.estado === 'cancelado' ? 'Cancelado' : m.estado}
+                            </span>
                           )}
                         </div>
                       </div>
