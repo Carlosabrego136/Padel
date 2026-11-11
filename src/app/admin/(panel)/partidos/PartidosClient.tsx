@@ -339,9 +339,12 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
                   <td>{p.retada_nombres} <span style={{ color: 'var(--color-text-muted)' }}>#{p.pos_retada}</span></td>
                   <td>{p.estado}</td>
                   <td>
-                    {p.sets
-                      ? (p.sets as { a: number; b: number }[]).map((s) => `${s.a}-${s.b}`).join(', ')
-                      : '—'}
+                    {p.sets ? (p.sets as { a: number; b: number }[]).map((s) => `${s.a}-${s.b}`).join(', ') : '—'}
+                    {p.ganadora_id && (
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-accent)', marginTop: 2 }}>
+                        Ganó: {p.ganadora_id === p.retadora_id ? p.retadora_nombres : p.retada_nombres}
+                      </div>
+                    )}
                   </td>
                   <td>{p.cancha ?? '—'}</td>
                   <td>
@@ -391,6 +394,12 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
                   Captura el marcador de cada set jugado. La pareja que gane el partido sube una posición y la que
                   pierda baja una (se calcula automáticamente al guardar).
                 </p>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, fontSize: '0.78rem', fontWeight: 700 }}>
+                  <span style={{ width: 50 }} />
+                  <span style={{ width: 60, textAlign: 'center' }}>{selectedPartido.retadora_nombres}</span>
+                  <span style={{ visibility: 'hidden' }}>-</span>
+                  <span style={{ width: 60, textAlign: 'center' }}>{selectedPartido.retada_nombres}</span>
+                </div>
                 {sets.map((s, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
                     <span style={{ fontSize: '0.85rem', width: 50 }}>Set {i + 1}:</span>
