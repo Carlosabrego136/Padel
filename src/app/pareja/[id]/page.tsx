@@ -230,32 +230,27 @@ export default async function ParejaPage({ params }: Props) {
 
             {/* Jugadores */}
             <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 12 }}>Jugadores</h2>
-            <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', marginBottom: 32 }}>
+            <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', marginBottom: 32 }}>
               {pareja.jugadores.map((j) => (
-                <div key={j.id} className="card" style={{ padding: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div key={j.id} className="card jugador-card" style={{ padding: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     {j.tiene_foto ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={`/api/foto/${j.id}`}
                         alt={j.nombre}
-                        width={48}
-                        height={48}
-                        style={{ borderRadius: '50%', objectFit: 'cover' }}
+                        width={76}
+                        height={76}
+                        className="jugador-foto"
                         loading="lazy"
                       />
                     ) : (
-                      <div style={{
-                        width: 48, height: 48, borderRadius: '50%',
-                        background: 'var(--color-bg-alt)', display: 'flex',
-                        alignItems: 'center', justifyContent: 'center',
-                        fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-muted)',
-                      }}>
+                      <div className="jugador-foto jugador-foto--placeholder">
                         {j.nombre.charAt(0).toUpperCase()}
                       </div>
                     )}
                     <div>
-                      <p style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>{j.nombre}</p>
+                      <p style={{ fontWeight: 700, fontSize: '1.02rem', margin: 0 }}>{j.nombre}</p>
                       <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: 0 }}>
                         {j.genero === 'M' ? 'Hombre' : 'Mujer'}
                       </p>

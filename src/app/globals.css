@@ -1429,6 +1429,39 @@ html[data-intro="done"] .hero__cta {
 .badge-rechazada { background: rgba(248, 113, 113, 0.15); color: var(--color-error); }
 .badge-retirada  { background: rgba(160, 160, 180, 0.15); color: var(--color-text-muted); }
 
+/* ---------- Jugadores (fotos, página pública de pareja) -------------------- */
+.jugador-card {
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+.jugador-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.jugador-foto {
+  width: 76px;
+  height: 76px;
+  min-width: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 3px var(--color-bg-card), 0 0 0 5px var(--color-accent), 0 4px 10px rgba(21, 188, 223, 0.25);
+}
+
+.jugador-foto--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-border));
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+@media (max-width: 520px) {
+  .jugador-foto { width: 64px; height: 64px; min-width: 64px; }
+  .jugador-foto--placeholder { font-size: 1.4rem; }
+}
+
 /* ---------- Match cards (Últimos partidos, página pública de pareja) ------- */
 .match-list {
   display: flex;
