@@ -318,6 +318,35 @@ export async function getRankingCategoria(
   return agruparJugadores<ParejaRanking>(r.rows);
 }
 
+/**
+ * Igual que getRankingCategoria pero trae TODAS las categorías en una sola conexión a la base
+ * de datos, en vez de una conexión por categoría. El servidor de Aiven es compartido (máximo
+ * 2 conexiones simultáneas por instancia), así que al cargar la página de ranking público antes
+ * se abrían hasta 6 conexiones separadas (una por categoría) y se formaba fila; con esta consulta
+ * se abre una sola. El resultado se agrupa por categoria_id en el llamador.
+ */
+export async function getRankingTodasCategorias(
+  jornadaActualId: number | null = null,
+): Promise<ParejaRanking[]> {
+  const r = await query<ParejaFlatRow>(
+    `SELECT ${PAREJA_COLS}, ${JUGADOR_COLS},
+       (SELECT CASE
+                 WHEN m.estado IN ('jugado', 'resuelto_club') AND m.ganadora_id = p.id THEN 'gano'
+                 WHEN m.estado IN ('jugado', 'resuelto_club') THEN 'perdio'
+                 ELSE NULL
+               END
+        FROM partidos m
+        WHERE m.jornada_id = $1 AND (m.retadora_id = p.id OR m.retada_id = p.id)
+        LIMIT 1) AS resultado_semana
+     FROM parejas p
+     LEFT JOIN jugadores j ON j.pareja_id = p.id AND j.activo
+     WHERE p.estado = 'aprobada'
+     ORDER BY p.categoria_id, p.posicion NULLS LAST, p.creada_en`,
+    [jornadaActualId],
+  );
+  return agruparJugadores<ParejaRanking>(r.rows);
+}
+
 export async function getJornadaActual(tz: string): Promise<JornadaRow | null> {
   // tz is used for display only; the comparison uses timestamptz directly
   const r = await query<JornadaRow>(
