@@ -67,6 +67,9 @@ export default function ParejaActions({ pareja }: Props) {
   const handleTogglePago = () =>
     apiCall(`/api/admin/parejas/${pareja.id}/pago`, 'PUT', { pagoConfirmado: !pareja.pago_confirmado });
 
+  const handleTogglePausa = () =>
+    apiCall(`/api/admin/parejas/${pareja.id}/pausa`, 'PUT', { pausadaRetos: !pareja.pausada_retos });
+
   const handleMotivoSubmit = async () => {
     if (motivo.trim().length < 5) {
       setError('El motivo debe tener al menos 5 caracteres');
@@ -134,15 +137,26 @@ export default function ParejaActions({ pareja }: Props) {
           </>
         )}
         {pareja.estado === 'aprobada' && (
-          <AccionConAyuda ayuda="La pareja sale del ranking por su propia decisión o indicación del club. Las posiciones de las demás parejas de su categoría se ajustan automáticamente. Su historial queda guardado y puede volver a inscribirse después.">
-            <button
-              className="btn btn-danger"
-              onClick={() => { setShowMotivo('retirar'); setShowEditar(false); }}
-              disabled={isLoading}
-            >
-              Retirar
-            </button>
-          </AccionConAyuda>
+          <>
+            <AccionConAyuda ayuda="La pareja sale del ranking por su propia decisión o indicación del club. Las posiciones de las demás parejas de su categoría se ajustan automáticamente. Su historial queda guardado y puede volver a inscribirse después.">
+              <button
+                className="btn btn-danger"
+                onClick={() => { setShowMotivo('retirar'); setShowEditar(false); }}
+                disabled={isLoading}
+              >
+                Retirar
+              </button>
+            </AccionConAyuda>
+            <AccionConAyuda ayuda="Mientras está pausada, esta pareja sigue apareciendo normalmente en el ranking público (no cambia su posición ni nada más), pero NO entra cuando generes los retos de la siguiente jornada. Útil para una pareja recién inscrita, para que no desacomode los cruces de las demás esa semana. Desactívala cuando quieras que vuelva a entrar.">
+              <button className="btn btn-secondary" onClick={handleTogglePausa} disabled={isLoading}>
+                {loading?.includes('/pausa')
+                  ? 'Actualizando…'
+                  : pareja.pausada_retos
+                  ? 'Quitar pausa (volver a incluir en retos)'
+                  : 'Pausar para la próxima jornada'}
+              </button>
+            </AccionConAyuda>
+          </>
         )}
         <AccionConAyuda ayuda="Corrige nombres, teléfonos o género de los jugadores. No cambia su categoría ni su posición en el ranking.">
           <button

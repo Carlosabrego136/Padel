@@ -83,6 +83,9 @@ export default async function ParejasPage({
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {p.pausada_retos && (
+                  <span className="badge badge-pendiente">Pausada</span>
+                )}
                 {p.pago_confirmado && (
                   <span style={{ fontSize: '0.75rem', padding: '2px 8px', borderRadius: 4, background: 'var(--color-success)', color: '#fff' }}>
                     Pagado

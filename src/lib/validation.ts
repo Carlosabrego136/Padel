@@ -93,6 +93,8 @@ export const loginSchema = z.object({
 
 export const aprobarSchema = z.object({ pagoConfirmado: z.boolean() });
 
+export const pausaSchema = z.object({ pausadaRetos: z.boolean() });
+
 export const motivoSchema = z.object({
   motivo: z.string().transform(limpiarTexto).pipe(z.string().min(5, 'Escribe un motivo (mínimo 5 caracteres)').max(300)),
 });

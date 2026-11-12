@@ -282,6 +282,38 @@ export async function actualizarPagoPareja(
 }
 
 /**
+ * Pausa o reactiva a una pareja para la generación de retos. Una pareja pausada sigue
+ * apareciendo normalmente en el ranking público (no cambia su estado ni su posición):
+ * solo se le excluye cuando se corre "Generar retos de la semana", para esa jornada.
+ */
+export async function actualizarPausaPareja(
+  parejaId: string,
+  pausadaRetos: boolean,
+  actor: Actor,
+): Promise<void> {
+  validarUuid(parejaId, 'pareja');
+
+  await withAdminTx(actor, async (tx) => {
+    const r = await tx.query<{ id: string; pausada_retos: boolean }>(
+      "SELECT id, pausada_retos FROM parejas WHERE id = $1 FOR UPDATE",
+      [parejaId],
+    );
+    const pareja = r.rows[0];
+    if (!pareja) throw notFound('Pareja no encontrada');
+
+    await tx.query(`UPDATE parejas SET pausada_retos = $2 WHERE id = $1`, [parejaId, pausadaRetos]);
+
+    await tx.audit({
+      accion: 'actualizar_pausa_pareja',
+      entidad: 'pareja',
+      entidadId: parejaId,
+      antes: { pausada_retos: pareja.pausada_retos },
+      despues: { pausada_retos: pausadaRetos },
+    });
+  });
+}
+
+/**
  * Muestra u oculta una categoría en el ranking público. No la elimina ni afecta inscripciones,
  * sorteo, partidos ni nada más: solo controla si aparece en la página pública de Ranking.
  */
@@ -698,15 +730,16 @@ export async function crearPartido(
 
     // Obtener retadora
     const retadoraR = await tx.query<{
-      id: string; categoria_id: number; posicion: number | null; estado: string;
+      id: string; categoria_id: number; posicion: number | null; estado: string; pausada_retos: boolean;
     }>(
-      "SELECT id, categoria_id, posicion, estado FROM parejas WHERE id = $1",
+      "SELECT id, categoria_id, posicion, estado, pausada_retos FROM parejas WHERE id = $1",
       [data.retadoraId],
     );
     const retadora = retadoraR.rows[0];
     if (!retadora) throw notFound('Pareja retadora no encontrada');
     if (retadora.estado !== 'aprobada') throw badRequest('La pareja retadora debe estar aprobada');
     if (retadora.posicion == null) throw badRequest('La pareja retadora no tiene posición asignada');
+    if (retadora.pausada_retos) throw badRequest('La pareja retadora está pausada para esta jornada');
 
     let retadaId: string;
     let categoriaRetadaId: number;
@@ -716,10 +749,10 @@ export async function crearPartido(
       // Buscar la pareja inmediatamente arriba en la misma categoría
       const retadaR = await tx.query<{ id: string; categoria_id: number; posicion: number }>(
         `SELECT id, categoria_id, posicion FROM parejas
-         WHERE categoria_id = $1 AND estado = 'aprobada' AND posicion = $2`,
+         WHERE categoria_id = $1 AND estado = 'aprobada' AND posicion = $2 AND pausada_retos = false`,
         [retadora.categoria_id, retadora.posicion - 1],
       );
-      if (!retadaR.rows[0]) throw badRequest('No hay pareja a quién retar (la retadora ya es 1er lugar o no hay posición arriba)');
+      if (!retadaR.rows[0]) throw badRequest('No hay pareja a quién retar (la retadora ya es 1er lugar, no hay posición arriba, o esa pareja está pausada)');
       retadaId = retadaR.rows[0].id;
       categoriaRetadaId = retadaR.rows[0].categoria_id;
       posRetada = retadaR.rows[0].posicion;
@@ -735,10 +768,10 @@ export async function crearPartido(
       const superiorId = supR.rows[0]?.superior_id;
       if (superiorId == null) throw badRequest('Esta categoría no tiene categoría superior para ascenso');
 
-      // Último lugar de la categoría superior
+      // Último lugar de la categoría superior (que no esté pausado)
       const retadaR = await tx.query<{ id: string; posicion: number }>(
         `SELECT id, posicion FROM parejas
-         WHERE categoria_id = $1 AND estado = 'aprobada' AND posicion IS NOT NULL
+         WHERE categoria_id = $1 AND estado = 'aprobada' AND posicion IS NOT NULL AND pausada_retos = false
          ORDER BY posicion DESC LIMIT 1`,
         [superiorId],
       );
@@ -869,9 +902,12 @@ export async function generarRetosSemana(jornadaId: number, actor: Actor): Promi
   const numeroJornada = jornadaR.rows[0].numero ?? jornadaId;
   const sentidoInvertido = numeroJornada % 2 === 0;
 
+  // Las parejas pausadas (pausada_retos) quedan fuera de esta jornada: no se les genera cruce y
+  // no cuentan para los cruces de las demás, pero siguen apareciendo en el ranking público y
+  // conservan su posición para cuando se les reactive.
   const parejasR = await query<{ id: string; categoria_id: number; posicion: number }>(
     `SELECT id, categoria_id, posicion FROM parejas
-     WHERE estado = 'aprobada' AND posicion IS NOT NULL
+     WHERE estado = 'aprobada' AND posicion IS NOT NULL AND pausada_retos = false
      ORDER BY categoria_id, posicion`,
     [],
   );

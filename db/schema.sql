@@ -82,6 +82,12 @@ CREATE INDEX IF NOT EXISTS parejas_estado_cat ON parejas (estado, categoria_id);
 -- de quién es campeón vive en campeones_temporada (ver más abajo).
 ALTER TABLE parejas ADD COLUMN IF NOT EXISTS premio_campeon boolean NOT NULL DEFAULT false;
 
+-- Pausa manual para la generación de retos: una pareja pausada sigue apareciendo normalmente en
+-- el ranking público (no cambia estado ni posición), pero se excluye al correr "Generar retos de
+-- la semana" para esa jornada. Se usa, por ejemplo, para una pareja recién inscrita cuyo ingreso
+-- inmediato desacomodaría los cruces de las demás parejas de su categoría.
+ALTER TABLE parejas ADD COLUMN IF NOT EXISTS pausada_retos boolean NOT NULL DEFAULT false;
+
 CREATE TABLE IF NOT EXISTS jugadores (
   id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   pareja_id  uuid NOT NULL REFERENCES parejas(id) ON DELETE CASCADE,

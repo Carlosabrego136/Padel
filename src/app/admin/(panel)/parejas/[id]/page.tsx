@@ -32,6 +32,11 @@ export default async function ParejaDetallePage({ params }: { params: { id: stri
             <span className={ESTADO_BADGE[pareja.estado]}>{pareja.estado}</span>
           </Info>
           <Info label="Posición" value={pareja.posicion != null ? `#${pareja.posicion}` : 'Sin posición'} />
+          {pareja.pausada_retos && (
+            <Info label="Retos">
+              <span className="badge badge-pendiente">Pausada para la próxima jornada</span>
+            </Info>
+          )}
           {pareja.posicion == null && pareja.estado === 'aprobada' && (
             <div style={{ gridColumn: '1 / -1' }}>
               <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 4 }}>

@@ -151,6 +151,8 @@ export interface ParejaAdmin {
   creada_en: string;
   aprobada_en: string | null;
   retirada_en: string | null;
+  /** Si está pausada, no entra a la próxima generación de retos, pero sigue visible en el ranking público. */
+  pausada_retos: boolean;
   jugadores: JugadorResumen[];
 }
 
@@ -263,7 +265,7 @@ function agruparJugadores<T>(
 
 const PAREJA_COLS = `p.id, p.categoria_id, p.estado, p.posicion, p.telefono_contacto,
   p.acepta_publicar, p.mixta, p.cuota_por_jugador, p.pago_confirmado,
-  p.motivo_cierre, p.es_demo, p.creada_en, p.aprobada_en, p.retirada_en`;
+  p.motivo_cierre, p.es_demo, p.creada_en, p.aprobada_en, p.retirada_en, p.pausada_retos`;
 
 const JUGADOR_COLS = `j.id AS j_id, j.nombre AS j_nombre, j.clave AS j_clave,
   j.genero AS j_genero, j.telefono AS j_telefono, (j.foto IS NOT NULL) AS j_tiene_foto`;
