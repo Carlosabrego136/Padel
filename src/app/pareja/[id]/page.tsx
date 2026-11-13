@@ -251,7 +251,16 @@ export default async function ParejaPage({ params }: Props) {
                     )}
                     <div>
                       <p style={{ fontWeight: 700, fontSize: '1.02rem', margin: 0 }}>{j.nombre}</p>
-                      <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', margin: 0 }}>
+                      <p
+                        style={{
+                          fontSize: '0.78rem',
+                          fontWeight: 700,
+                          color: '#111318',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em',
+                          margin: '2px 0 0',
+                        }}
+                      >
                         {j.genero === 'M' ? 'Hombre' : 'Mujer'}
                       </p>
                     </div>

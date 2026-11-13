@@ -1461,11 +1461,20 @@ html[data-intro="done"] .hero__cta {
 
 /* ---------- Jugadores (fotos, página pública de pareja) -------------------- */
 .jugador-card {
+  position: relative;
+  overflow: hidden;
+  /* Degradado a blanco a la derecha (donde va el nombre) encima de la imagen de fondo, para que
+     el texto se lea bien sin importar qué tanto se recorte la imagen en pantallas angostas. */
+  background-image: linear-gradient(100deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.88) 58%, rgba(255, 255, 255, 0.97) 100%),
+    url('/img/jugador-card-bg.jpg');
+  background-size: cover;
+  background-position: center right;
+  border-left: 4px solid var(--color-accent);
   transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
 }
 .jugador-card:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
 .jugador-foto {
