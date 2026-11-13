@@ -1109,10 +1109,17 @@ html[data-intro="done"] .hero__cta {
   background: var(--color-bg-hover);
 }
 
-/* Toda la fila navega a la pareja (no solo el nombre) */
+/* Toda la fila navega a la pareja (no solo el nombre). El fondo deportivo se pone en la <tr>
+   (no en cada <td>) para que se vea como una sola imagen continua a lo largo de la fila, no
+   repetida en cada celda. El degradado hacia blanco cae justo del lado de "Contacto", así el
+   texto de esa columna siempre queda sobre la parte más clara de la imagen. */
 .ranking-row {
   cursor: pointer;
   outline: none;
+  background-image: linear-gradient(100deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.82) 60%, rgba(255, 255, 255, 0.95) 100%),
+    url('/img/jugador-card-bg.jpg');
+  background-size: cover;
+  background-position: center right;
 }
 .ranking-row:focus-visible td {
   box-shadow: inset 0 0 0 2px var(--color-accent);
@@ -1275,6 +1282,19 @@ html[data-intro="done"] .hero__cta {
   color: #1a1400;
   border-color: #b98b00;
   box-shadow: 0 2px 8px rgba(217, 167, 0, 0.45);
+}
+
+/* "Pastilla" blanca semi-transparente detrás del nombre (y badges) de cada pareja en el
+   ranking: encima de la imagen deportiva, para que el texto siempre resalte con nitidez. */
+.ranking-text-pill {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .ranking-link {
@@ -1499,6 +1519,16 @@ html[data-intro="done"] .hero__cta {
 @media (max-width: 520px) {
   .jugador-foto { width: 64px; height: 64px; min-width: 64px; }
   .jugador-foto--placeholder { font-size: 1.4rem; }
+}
+
+/* "Pastilla" blanca semi-transparente detrás del nombre y "Hombre/Mujer" en la tarjeta de
+   jugador, encima de la imagen de fondo deportiva, para que el texto resalte con nitidez. */
+.jugador-info {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 /* ---------- Match cards (Últimos partidos, página pública de pareja) ------- */

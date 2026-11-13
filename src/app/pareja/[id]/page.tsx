@@ -249,7 +249,7 @@ export default async function ParejaPage({ params }: Props) {
                         {j.nombre.charAt(0).toUpperCase()}
                       </div>
                     )}
-                    <div>
+                    <div className="jugador-info">
                       <p style={{ fontWeight: 700, fontSize: '1.02rem', margin: 0 }}>{j.nombre}</p>
                       <p
                         style={{

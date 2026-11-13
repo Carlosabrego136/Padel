@@ -88,15 +88,17 @@ export default function RankingClient({ categorias, ranking }: Props) {
                           </span>
                         ))}
                       </span>
-                      <span className="ranking-link">
-                        {p.jugadores.map((j) => j.nombre).join(' / ') || '—'}
-                      </span>
-                      {p.mixta && <span className="badge badge-mix">Mixta</span>}
-                      {p.resultado_semana && (
-                        <span className={`ranking-badge ranking-badge--${p.resultado_semana === 'gano' ? 'win' : 'loss'}`}>
-                          {p.resultado_semana === 'gano' ? 'Ganó' : 'Perdió'}
+                      <span className="ranking-text-pill">
+                        <span className="ranking-link">
+                          {p.jugadores.map((j) => j.nombre).join(' / ') || '—'}
                         </span>
-                      )}
+                        {p.mixta && <span className="badge badge-mix">Mixta</span>}
+                        {p.resultado_semana && (
+                          <span className={`ranking-badge ranking-badge--${p.resultado_semana === 'gano' ? 'win' : 'loss'}`}>
+                            {p.resultado_semana === 'gano' ? 'Ganó' : 'Perdió'}
+                          </span>
+                        )}
+                      </span>
                     </div>
                   </td>
                   <td
