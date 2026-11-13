@@ -74,7 +74,18 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background: var(--color-bg);
+  /* Fondo deportivo muy sutil detrás de todo el contenido (las tarjetas se quedan iguales,
+     siguen con su propio fondo blanco encima). "scroll" (no "fixed") para que se vea bien
+     también en celular, "cover" + "top center" para que no se vea cortado raro en pantallas
+     muy angostas o muy anchas. */
+  background-color: var(--color-bg);
+  background-image: url('/img/page-bg.jpg');
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  /* "fixed" ancla el tamaño de la imagen al alto de la pantalla (no al alto total de la página),
+     para que no se vea estirada o deforme en páginas largas con muchas tarjetas. */
+  background-attachment: fixed;
   color: var(--color-text);
   line-height: 1.6;
   min-height: 100dvh;
