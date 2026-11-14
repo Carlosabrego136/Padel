@@ -33,7 +33,7 @@ export default function ParejaActions({ pareja }: Props) {
   });
 
   const apiCall = useCallback(
-    async (url: string, method: string, body?: unknown) => {
+    async (url: string, method: string, body?: unknown, redirectTo?: string) => {
       setError(null);
       setLoading(url);
       try {
@@ -47,7 +47,10 @@ export default function ParejaActions({ pareja }: Props) {
           setError(data.error ?? 'Error en la operación');
           return false;
         }
-        router.refresh();
+        // Si la propia pareja dejó de existir (por ejemplo, tras eliminarla), no tiene caso
+        // recargar esta misma página de detalle: en vez de eso se manda a otra ruta.
+        if (redirectTo) router.push(redirectTo);
+        else router.refresh();
         return true;
       } catch {
         setError('Error de conexión');
@@ -77,13 +80,15 @@ export default function ParejaActions({ pareja }: Props) {
     }
     let url = '';
     let method = 'POST';
+    let redirectTo: string | undefined;
     if (showMotivo === 'rechazar') url = `/api/admin/parejas/${pareja.id}/rechazar`;
     else if (showMotivo === 'retirar') url = `/api/admin/parejas/${pareja.id}/retirar`;
     else if (showMotivo === 'eliminar') {
       url = `/api/admin/parejas/${pareja.id}/eliminar`;
       method = 'DELETE';
+      redirectTo = '/admin/parejas';
     }
-    const ok = await apiCall(url, method, { motivo: motivo.trim() });
+    const ok = await apiCall(url, method, { motivo: motivo.trim() }, redirectTo);
     if (ok) {
       setMotivo('');
       setShowMotivo(null);
