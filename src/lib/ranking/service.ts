@@ -535,8 +535,8 @@ export async function eliminarPareja(parejaId: string, motivo: string, actor: Ac
     );
     const pareja = r.rows[0];
     if (!pareja) throw notFound('Pareja no encontrada');
-    if (pareja.estado !== 'pendiente' && !pareja.es_demo) {
-      throw forbidden('Solo se pueden eliminar parejas pendientes o de demostración. Usa retirar para parejas aprobadas.');
+    if (pareja.estado !== 'pendiente' && pareja.estado !== 'retirada' && !pareja.es_demo) {
+      throw forbidden('Solo se pueden eliminar parejas pendientes, retiradas o de demostración. Usa retirar para parejas aprobadas.');
     }
 
     // Capturar datos de jugadores antes de borrar

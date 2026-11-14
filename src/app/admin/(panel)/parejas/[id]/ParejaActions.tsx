@@ -167,7 +167,7 @@ export default function ParejaActions({ pareja }: Props) {
             Editar datos
           </button>
         </AccionConAyuda>
-        <AccionConAyuda ayuda="Borra a la pareja por completo, incluyendo su historial. Esta acción no se puede deshacer — úsala solo para inscripciones de prueba o duplicadas por error. Para una pareja real que ya no va a seguir, usa &quot;Retirar&quot; en vez de esto.">
+        <AccionConAyuda ayuda="Borra a la pareja por completo, incluyendo su historial, y deja de aparecer en cualquier lista (incluida &quot;Retiradas&quot;). Esta acción no se puede deshacer — úsala para inscripciones de prueba, duplicadas por error, o para quitar por completo una pareja ya retirada. Para una pareja que sigue aprobada y activa, usa &quot;Retirar&quot; en vez de esto.">
           <button
             className="btn btn-danger"
             onClick={() => { setShowMotivo('eliminar'); setShowEditar(false); }}
