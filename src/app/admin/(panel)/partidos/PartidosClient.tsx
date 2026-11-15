@@ -26,7 +26,7 @@ interface RetoOmitido {
   motivo: string;
 }
 
-type ModalType = 'resultado' | 'resolver' | 'programar' | 'cancelar' | null;
+type ModalType = 'resultado' | 'corregir' | 'resolver' | 'programar' | 'cancelar' | null;
 
 export default function PartidosClient({ jornadas, categorias }: Props) {
   const [jornadaId, setJornadaId] = useState<number | null>(() => {
@@ -123,7 +123,13 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
     setModal(type);
     setError(null);
     setSuccess(null);
-    setSets([{ a: 0, b: 0 }, { a: 0, b: 0 }, { a: 0, b: 0 }]);
+    if (type === 'corregir' && p.sets) {
+      const actuales = p.sets as { a: number; b: number }[];
+      const relleno = [0, 1, 2].map((i) => actuales[i] ?? { a: 0, b: 0 });
+      setSets(relleno);
+    } else {
+      setSets([{ a: 0, b: 0 }, { a: 0, b: 0 }, { a: 0, b: 0 }]);
+    }
     setGanadoraId('');
     setNota('');
     setFechaJuego(p.fecha_juego ? new Date(p.fecha_juego).toISOString().slice(0, 16) : '');
@@ -168,6 +174,16 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
       return;
     }
     submitAction(`/api/admin/partidos/${selectedPartido.id}/resultado`, 'POST', { sets: validSets });
+  };
+
+  const handleCorregir = () => {
+    if (!selectedPartido) return;
+    const validSets = sets.filter((s) => s.a > 0 || s.b > 0);
+    if (validSets.length < 2) {
+      setError('Captura al menos 2 sets');
+      return;
+    }
+    submitAction(`/api/admin/partidos/${selectedPartido.id}/resultado`, 'PUT', { sets: validSets });
   };
 
   const handleResolver = () => {
@@ -357,6 +373,13 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
                           <Btn label="Cancelar" onClick={() => openModal('cancelar', p)} danger title="Cancela el partido por completo; no cuenta para el ranking." />
                         </>
                       )}
+                      {p.estado === 'jugado' && jornadaSeleccionada?.estado === 'programada' && (
+                        <Btn
+                          label="Corregir resultado"
+                          onClick={() => openModal('corregir', p)}
+                          title="Reemplaza el marcador capturado por error, mientras esta jornada siga abierta. Disponible solo hasta que se cierre la jornada."
+                        />
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -433,6 +456,55 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
                   </div>
                 ))}
                 <ModalActions onConfirm={handleResultado} onCancel={closeModal} loading={submitting} />
+              </>
+            )}
+
+            {modal === 'corregir' && (
+              <>
+                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+                  Este partido ya tenía un marcador capturado; aquí aparece precargado. Corrígelo y guarda — se
+                  reemplaza por completo. Esto solo funciona mientras la jornada siga abierta; en cuanto se cierre,
+                  ya no se podrá corregir desde aquí.
+                </p>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, fontSize: '0.78rem', fontWeight: 700 }}>
+                  <span style={{ width: 50 }} />
+                  <span style={{ width: 60, textAlign: 'center' }}>{selectedPartido.retadora_nombres}</span>
+                  <span style={{ visibility: 'hidden' }}>-</span>
+                  <span style={{ width: 60, textAlign: 'center' }}>{selectedPartido.retada_nombres}</span>
+                </div>
+                {sets.map((s, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{ fontSize: '0.85rem', width: 50 }}>Set {i + 1}:</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={99}
+                      className="form-input"
+                      style={{ width: 60 }}
+                      value={s.a}
+                      onChange={(e) => {
+                        const v = [...sets];
+                        v[i] = { ...v[i], a: parseInt(e.target.value) || 0 };
+                        setSets(v);
+                      }}
+                    />
+                    <span>-</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={99}
+                      className="form-input"
+                      style={{ width: 60 }}
+                      value={s.b}
+                      onChange={(e) => {
+                        const v = [...sets];
+                        v[i] = { ...v[i], b: parseInt(e.target.value) || 0 };
+                        setSets(v);
+                      }}
+                    />
+                  </div>
+                ))}
+                <ModalActions onConfirm={handleCorregir} onCancel={closeModal} loading={submitting} confirmLabel="Guardar corrección" />
               </>
             )}
 

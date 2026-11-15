@@ -1128,6 +1128,59 @@ export async function registrarResultado(
   });
 }
 
+/**
+ * Corrige el marcador de un partido que YA fue capturado (estado 'jugado'), siempre y cuando
+ * su jornada siga abierta ("programada"). Una vez que la jornada se cierra, sus resultados ya
+ * movieron posiciones en el ranking (ver cerrarJornada/aplicarSemana), así que corregir el
+ * marcador después dejaría esas posiciones desactualizadas sin recalcular toda la semana — por
+ * eso esta función se bloquea en cuanto la jornada queda cerrada.
+ */
+export async function corregirResultado(
+  partidoId: string,
+  sets: { a: number; b: number }[],
+  actor: Actor,
+): Promise<{ ganadoraId: string }> {
+  validarUuid(partidoId, 'partido');
+
+  const resultado = evaluarMarcador(sets);
+  if (!resultado.ok) throw badRequest(resultado.error);
+
+  return withAdminTx(actor, async (tx) => {
+    const r = await tx.query<{
+      id: string; estado: string; retadora_id: string; retada_id: string;
+      sets: { a: number; b: number }[] | null; ganadora_id: string | null; jornada_estado: string;
+    }>(
+      `SELECT p.id, p.estado, p.retadora_id, p.retada_id, p.sets, p.ganadora_id, j.estado AS jornada_estado
+       FROM partidos p JOIN jornadas j ON j.id = p.jornada_id
+       WHERE p.id = $1 FOR UPDATE`,
+      [partidoId],
+    );
+    const partido = r.rows[0];
+    if (!partido) throw notFound('Partido no encontrado');
+    if (partido.estado !== 'jugado') throw conflict(`Solo se puede corregir un partido ya jugado (actual: "${partido.estado}")`);
+    if (partido.jornada_estado !== 'programada') {
+      throw conflict('La jornada de este partido ya se cerró; el resultado ya no se puede corregir directamente.');
+    }
+
+    const ganadoraId = resultado.ganadora === 'a' ? partido.retadora_id : partido.retada_id;
+
+    await tx.query(
+      `UPDATE partidos SET sets = $2::jsonb, ganadora_id = $3 WHERE id = $1`,
+      [partidoId, JSON.stringify(sets), ganadoraId],
+    );
+
+    await tx.audit({
+      accion: 'corregir_resultado',
+      entidad: 'partido',
+      entidadId: partidoId,
+      antes: { sets: partido.sets, ganadoraId: partido.ganadora_id },
+      despues: { sets, ganadora: resultado.ganadora, ganadoraId },
+    });
+
+    return { ganadoraId };
+  });
+}
+
 export async function resolverPorClub(
   partidoId: string,
   ganadoraId: string,
