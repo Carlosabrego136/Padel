@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
 import type { JornadaRow, PartidoConNombres, CategoriaRow } from '@/lib/queries';
 
 interface Props {
@@ -45,6 +45,18 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
   const nombreCategoria = useCallback(
     (id: number) => categorias.find((c) => c.id === id)?.nombre ?? `Categoría ${id}`,
     [categorias],
+  );
+
+  // Los partidos ya llegan ordenados por categoría desde el servidor (ver adminGetPartidos),
+  // pero la tabla no mostraba a qué categoría pertenecía cada fila, así que a simple vista se
+  // veían revueltos. Esto agrupa visualmente con un encabezado cada vez que cambia la categoría
+  // (o al llegar a los partidos de ascenso, que cruzan dos categorías y van aparte al final).
+  const grupoDe = useCallback(
+    (p: PartidoConNombres) =>
+      p.tipo === 'ascenso'
+        ? { key: 'ascenso', label: 'Ascensos entre categorías' }
+        : { key: `cat-${p.categoria_retadora_id}`, label: nombreCategoria(p.categoria_retadora_id) },
+    [nombreCategoria],
   );
 
   // Modal state
@@ -338,52 +350,78 @@ export default function PartidosClient({ jornadas, categorias }: Props) {
               </tr>
             </thead>
             <tbody>
-              {partidos.map((p) => (
-                <tr key={p.id}>
-                  <td>
-                    <span style={{
-                      fontSize: '0.75rem',
-                      padding: '2px 6px',
-                      borderRadius: 4,
-                      background: p.tipo === 'ascenso' ? 'var(--color-accent)' : 'var(--color-bg-alt)',
-                      color: p.tipo === 'ascenso' ? '#fff' : 'var(--color-text)',
-                    }}>
-                      {p.tipo}
-                    </span>
-                  </td>
-                  <td>{p.retadora_nombres} <span style={{ color: 'var(--color-text-muted)' }}>#{p.pos_retadora}</span></td>
-                  <td>{p.retada_nombres} <span style={{ color: 'var(--color-text-muted)' }}>#{p.pos_retada}</span></td>
-                  <td>{p.estado}</td>
-                  <td>
-                    {p.sets ? (p.sets as { a: number; b: number }[]).map((s) => `${s.a}-${s.b}`).join(', ') : '—'}
-                    {p.ganadora_id && (
-                      <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-accent)', marginTop: 2 }}>
-                        Ganó: {p.ganadora_id === p.retadora_id ? p.retadora_nombres : p.retada_nombres}
-                      </div>
-                    )}
-                  </td>
-                  <td>{p.cancha ?? '—'}</td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                      {p.estado === 'programado' && (
-                        <>
-                          <Btn label="Resultado" onClick={() => openModal('resultado', p)} title="Captura el marcador del partido jugado (quien gane sube, quien pierda baja)." />
-                          <Btn label="Resolver" onClick={() => openModal('resolver', p)} title="Úsalo cuando el partido no se jugó por falta de acuerdo entre las parejas; tú decides la ganadora según la evidencia." />
-                          <Btn label="Programar" onClick={() => openModal('programar', p)} title="Asigna fecha, hora y cancha al partido (solo informativo, no es obligatorio)." />
-                          <Btn label="Cancelar" onClick={() => openModal('cancelar', p)} danger title="Cancela el partido por completo; no cuenta para el ranking." />
-                        </>
+              {(() => {
+                let ultimoGrupo: string | null = null;
+                return partidos.map((p) => {
+                  const grupo = grupoDe(p);
+                  const mostrarEncabezado = grupo.key !== ultimoGrupo;
+                  ultimoGrupo = grupo.key;
+                  return (
+                    <Fragment key={p.id}>
+                      {mostrarEncabezado && (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            style={{
+                              background: 'var(--color-bg-alt)',
+                              fontWeight: 700,
+                              fontSize: '0.8rem',
+                              padding: '8px 10px',
+                              borderTop: '2px solid var(--color-border)',
+                            }}
+                          >
+                            {grupo.label}
+                          </td>
+                        </tr>
                       )}
-                      {p.estado === 'jugado' && jornadaSeleccionada?.estado === 'programada' && (
-                        <Btn
-                          label="Corregir resultado"
-                          onClick={() => openModal('corregir', p)}
-                          title="Reemplaza el marcador capturado por error, mientras esta jornada siga abierta. Disponible solo hasta que se cierre la jornada."
-                        />
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      <tr>
+                        <td>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            padding: '2px 6px',
+                            borderRadius: 4,
+                            background: p.tipo === 'ascenso' ? 'var(--color-accent)' : 'var(--color-bg-alt)',
+                            color: p.tipo === 'ascenso' ? '#fff' : 'var(--color-text)',
+                          }}>
+                            {p.tipo}
+                          </span>
+                        </td>
+                        <td>{p.retadora_nombres} <span style={{ color: 'var(--color-text-muted)' }}>#{p.pos_retadora}</span></td>
+                        <td>{p.retada_nombres} <span style={{ color: 'var(--color-text-muted)' }}>#{p.pos_retada}</span></td>
+                        <td>{p.estado}</td>
+                        <td>
+                          {p.sets ? (p.sets as { a: number; b: number }[]).map((s) => `${s.a}-${s.b}`).join(', ') : '—'}
+                          {p.ganadora_id && (
+                            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--color-accent)', marginTop: 2 }}>
+                              Ganó: {p.ganadora_id === p.retadora_id ? p.retadora_nombres : p.retada_nombres}
+                            </div>
+                          )}
+                        </td>
+                        <td>{p.cancha ?? '—'}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                            {p.estado === 'programado' && (
+                              <>
+                                <Btn label="Resultado" onClick={() => openModal('resultado', p)} title="Captura el marcador del partido jugado (quien gane sube, quien pierda baja)." />
+                                <Btn label="Resolver" onClick={() => openModal('resolver', p)} title="Úsalo cuando el partido no se jugó por falta de acuerdo entre las parejas; tú decides la ganadora según la evidencia." />
+                                <Btn label="Programar" onClick={() => openModal('programar', p)} title="Asigna fecha, hora y cancha al partido (solo informativo, no es obligatorio)." />
+                                <Btn label="Cancelar" onClick={() => openModal('cancelar', p)} danger title="Cancela el partido por completo; no cuenta para el ranking." />
+                              </>
+                            )}
+                            {p.estado === 'jugado' && jornadaSeleccionada?.estado === 'programada' && (
+                              <Btn
+                                label="Corregir resultado"
+                                onClick={() => openModal('corregir', p)}
+                                title="Reemplaza el marcador capturado por error, mientras esta jornada siga abierta. Disponible solo hasta que se cierre la jornada."
+                              />
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    </Fragment>
+                  );
+                });
+              })()}
             </tbody>
           </table>
         </div>

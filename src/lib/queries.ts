@@ -350,11 +350,21 @@ export async function getRankingTodasCategorias(
 }
 
 export async function getJornadaActual(tz: string): Promise<JornadaRow | null> {
-  // tz is used for display only; the comparison uses timestamptz directly
+  // tz es solo para compatibilidad de firma (ya no se usa para comparar fechas).
+  //
+  // "Jornada actual" se define igual que ya lo hace el panel de administración: la jornada
+  // normal más próxima que sigue abierta ("programada"), SIN exigir que la fecha de hoy caiga
+  // dentro de su rango inicio–cierre. Antes sí se exigía eso, y una jornada que se alarga más
+  // de lo planeado (por ejemplo, por un marcador en disputa que todavía no se resuelve) dejaba
+  // de contar como "actual" en cuanto pasaba su fecha de cierre programada, aunque siguiera
+  // abierta — eso hacía que avisos como "esta semana no tienes reto" (o el de Ganó/Perdió)
+  // dejaran de aparecer justo cuando más se necesitaban. Como solo hay una jornada normal
+  // "programada" a la vez que no sea futura (las anteriores ya están "cerradas" y las
+  // siguientes, generadas por adelantado, tienen una fecha de inicio posterior), tomar la más
+  // próxima por fecha de inicio sigue dando la jornada correcta.
   const r = await query<JornadaRow>(
     `SELECT * FROM jornadas
      WHERE estado = 'programada' AND tipo = 'normal'
-       AND inicio <= now() AND cierre > now()
      ORDER BY inicio LIMIT 1`,
   );
   return r.rows[0] ?? null;
