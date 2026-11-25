@@ -57,6 +57,8 @@ export interface ParejaRanking {
   jugadores: JugadorResumen[];
   /** Resultado del partido de la jornada actual para esta pareja (null si no tiene o no se ha resuelto). */
   resultado_semana: 'gano' | 'perdio' | null;
+  /** Comparación contra su posición antes del último cierre de jornada (null si aún no tiene historial). */
+  cambio_posicion: 'subio' | 'bajo' | 'igual' | null;
 }
 
 export interface JornadaRow {
@@ -270,6 +272,29 @@ const PAREJA_COLS = `p.id, p.categoria_id, p.estado, p.posicion, p.telefono_cont
 const JUGADOR_COLS = `j.id AS j_id, j.nombre AS j_nombre, j.clave AS j_clave,
   j.genero AS j_genero, j.telefono AS j_telefono, (j.foto IS NOT NULL) AS j_tiene_foto`;
 
+/**
+ * Compara la posición/categoría de la pareja contra su último cierre de jornada (tabla
+ * `movimientos`, que registra un renglón por pareja en cada cierre, incluso "sin_cambio").
+ * Si cambió de categoría, sube o baja según el "orden" de la categoría nueva vs la anterior;
+ * si se quedó en la misma categoría, compara la posición numérica. NULL si todavía no tiene
+ * ningún cierre de jornada registrado (pareja recién aprobada).
+ */
+const CAMBIO_POSICION_SELECT = `
+       (SELECT CASE
+                 WHEN m.categoria_antes IS DISTINCT FROM m.categoria_despues THEN
+                   CASE WHEN co_despues.orden < co_antes.orden THEN 'subio' ELSE 'bajo' END
+                 WHEN m.pos_despues < m.pos_antes THEN 'subio'
+                 WHEN m.pos_despues > m.pos_antes THEN 'bajo'
+                 WHEN m.pos_despues = m.pos_antes THEN 'igual'
+                 ELSE NULL
+               END
+        FROM movimientos m
+        LEFT JOIN categorias co_antes ON co_antes.id = m.categoria_antes
+        LEFT JOIN categorias co_despues ON co_despues.id = m.categoria_despues
+        WHERE m.pareja_id = p.id
+        ORDER BY m.jornada_id DESC NULLS LAST, m.creado_en DESC
+        LIMIT 1) AS cambio_posicion`;
+
 const PARTIDO_NOMBRES_SELECT = `
   p2.id, p2.jornada_id, p2.tipo,
   p2.retadora_id, p2.retada_id,
@@ -310,7 +335,8 @@ export async function getRankingCategoria(
                END
         FROM partidos m
         WHERE m.jornada_id = $2 AND (m.retadora_id = p.id OR m.retada_id = p.id)
-        LIMIT 1) AS resultado_semana
+        LIMIT 1) AS resultado_semana,
+     ${CAMBIO_POSICION_SELECT}
      FROM parejas p
      LEFT JOIN jugadores j ON j.pareja_id = p.id AND j.activo
      WHERE p.estado = 'aprobada' AND p.categoria_id = $1
@@ -339,7 +365,8 @@ export async function getRankingTodasCategorias(
                END
         FROM partidos m
         WHERE m.jornada_id = $1 AND (m.retadora_id = p.id OR m.retada_id = p.id)
-        LIMIT 1) AS resultado_semana
+        LIMIT 1) AS resultado_semana,
+     ${CAMBIO_POSICION_SELECT}
      FROM parejas p
      LEFT JOIN jugadores j ON j.pareja_id = p.id AND j.activo
      WHERE p.estado = 'aprobada'

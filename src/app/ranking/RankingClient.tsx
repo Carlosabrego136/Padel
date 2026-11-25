@@ -73,7 +73,23 @@ export default function RankingClient({ categorias, ranking }: Props) {
                     }
                   }}
                 >
-                  <td className="ranking-pos">{p.posicion ?? i + 1}</td>
+                  <td className="ranking-pos-cell">
+                    <span className="ranking-pos">{p.posicion ?? i + 1}</span>
+                    {p.cambio_posicion && (
+                      <span
+                        className={`ranking-change ranking-change--${p.cambio_posicion}`}
+                        title={
+                          p.cambio_posicion === 'subio'
+                            ? 'Subió de lugar la semana pasada'
+                            : p.cambio_posicion === 'bajo'
+                              ? 'Bajó de lugar la semana pasada'
+                              : 'Se mantuvo en el mismo lugar la semana pasada'
+                        }
+                      >
+                        {p.cambio_posicion === 'subio' ? '▲' : p.cambio_posicion === 'bajo' ? '▼' : '–'}
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <div className="ranking-pareja">
                       <span className="ranking-avatars">

@@ -1295,6 +1295,22 @@ html[data-intro="done"] .hero__cta {
   box-shadow: 0 2px 8px rgba(217, 167, 0, 0.45);
 }
 
+.ranking-pos-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.ranking-change {
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.ranking-change--subio { color: var(--color-success); }
+.ranking-change--bajo { color: var(--color-error); }
+.ranking-change--igual { color: var(--color-text-muted); }
+
 /* "Pastilla" blanca semi-transparente detrás del nombre (y badges) de cada pareja en el
    ranking: encima de la imagen deportiva, para que el texto siempre resalte con nitidez. */
 .ranking-text-pill {
