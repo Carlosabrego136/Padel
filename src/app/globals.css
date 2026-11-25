@@ -1297,19 +1297,65 @@ html[data-intro="done"] .hero__cta {
 
 .ranking-pos-cell {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
+  justify-content: center;
+}
+
+/* Envuelve el círculo de posición para poder anclar la insignia de movimiento
+   justo en su esquina, como un badge deportivo de marcador. */
+.ranking-pos-wrap {
+  position: relative;
+  display: inline-flex;
 }
 
 .ranking-change {
-  font-size: 0.7rem;
-  font-weight: 800;
-  line-height: 1;
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
 }
-.ranking-change--subio { color: var(--color-success); }
-.ranking-change--bajo { color: var(--color-error); }
-.ranking-change--igual { color: var(--color-text-muted); }
+.ranking-change--subio { background: var(--color-success); }
+.ranking-change--bajo { background: var(--color-error); }
+.ranking-change--igual { background: #8b9096; }
+
+.ranking-change__icon {
+  width: 0;
+  height: 0;
+}
+.ranking-change--subio .ranking-change__icon {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 6px solid #fff;
+  margin-bottom: 1px;
+}
+.ranking-change--bajo .ranking-change__icon {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid #fff;
+  margin-top: 1px;
+}
+.ranking-change--igual .ranking-change__icon {
+  width: 9px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: #fff;
+}
+
+@media (max-width: 520px) {
+  .ranking-change {
+    right: -4px;
+    bottom: -4px;
+    width: 17px;
+    height: 17px;
+    border-width: 1.5px;
+  }
+}
 
 /* "Pastilla" blanca semi-transparente detrás del nombre (y badges) de cada pareja en el
    ranking: encima de la imagen deportiva, para que el texto siempre resalte con nitidez. */

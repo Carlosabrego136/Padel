@@ -52,7 +52,7 @@ export default function RankingClient({ categorias, ranking }: Props) {
           <table className="ranking-table">
             <thead>
               <tr>
-                <th style={{ width: 48 }}>#</th>
+                <th style={{ width: 56 }}>#</th>
                 <th>Pareja</th>
                 <th style={{ width: 100, textAlign: 'center' }}>Contacto</th>
               </tr>
@@ -74,21 +74,23 @@ export default function RankingClient({ categorias, ranking }: Props) {
                   }}
                 >
                   <td className="ranking-pos-cell">
-                    <span className="ranking-pos">{p.posicion ?? i + 1}</span>
-                    {p.cambio_posicion && (
-                      <span
-                        className={`ranking-change ranking-change--${p.cambio_posicion}`}
-                        title={
-                          p.cambio_posicion === 'subio'
-                            ? 'Subió de lugar la semana pasada'
-                            : p.cambio_posicion === 'bajo'
-                              ? 'Bajó de lugar la semana pasada'
-                              : 'Se mantuvo en el mismo lugar la semana pasada'
-                        }
-                      >
-                        {p.cambio_posicion === 'subio' ? '▲' : p.cambio_posicion === 'bajo' ? '▼' : '–'}
-                      </span>
-                    )}
+                    <span className="ranking-pos-wrap">
+                      <span className="ranking-pos">{p.posicion ?? i + 1}</span>
+                      {p.cambio_posicion && (
+                        <span
+                          className={`ranking-change ranking-change--${p.cambio_posicion}`}
+                          title={
+                            p.cambio_posicion === 'subio'
+                              ? 'Subió de lugar la semana pasada'
+                              : p.cambio_posicion === 'bajo'
+                                ? 'Bajó de lugar la semana pasada'
+                                : 'Se mantuvo en el mismo lugar la semana pasada'
+                          }
+                        >
+                          <span className="ranking-change__icon" aria-hidden="true" />
+                        </span>
+                      )}
+                    </span>
                   </td>
                   <td>
                     <div className="ranking-pareja">
